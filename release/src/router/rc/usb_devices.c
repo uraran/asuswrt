@@ -1580,6 +1580,23 @@ int write_3g_conf(FILE *fp, int dno, int aut, const unsigned int vid, const unsi
 			fprintf(fp, "DefaultProduct=0x%04x\n",	0x15cd);
 			fprintf(fp, "HuaweiNewMode=1\n");
 			break;
+		case SN_Huawei_E3531:
+			fprintf(fp, "DefaultVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "DefaultProduct=0x%04x\n",	0x15e7);
+			fprintf(fp, "HuaweiNewMode=1\n");
+			break;
+		case SN_Huawei_K5160:
+			fprintf(fp, "DefaultVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "DefaultProduct=0x%04x\n",	0x1f1e);
+			fprintf(fp, "TargetVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "TargetProductList=\"%s\"\n", "157f,1592");
+			fprintf(fp, "HuaweiNewMode=1\n");
+			break;
+		case SN_Huawei_GP02:
+			fprintf(fp, "DefaultVendor=0x%04x\n",	0x12d1);
+			fprintf(fp, "DefaultProduct=0x%04x\n",	0x1c1b);
+			fprintf(fp, "HuaweiNewMode=1\n");
+			break;
 		case SN_Teracom_LW272:
 			fprintf(fp, "DefaultVendor=0x%04x\n",	0x230d);
 			fprintf(fp, "DefaultProduct=0x%04x\n",	0x0103);
@@ -1692,13 +1709,6 @@ int write_3g_conf(FILE *fp, int dno, int aut, const unsigned int vid, const unsi
 			fprintf(fp, "TargetVendor=0x%04x\n",	0x1ee8);
 			fprintf(fp, "TargetProduct=0x%04x\n",	0x0064);
 			fprintf(fp, "MessageContent=%s\n",	"555342431234567800000000000008FF000000000000030000000000000000");
-			break;
-		case SN_Huawei_K5160:
-			fprintf(fp, "DefaultVendor=0x%04x\n",	0x12d1);
-			fprintf(fp, "DefaultProduct=0x%04x\n",	0x1f1e);
-			fprintf(fp, "TargetVendor=0x%04x\n",	0x12d1);
-			fprintf(fp, "TargetProductList=\"%s\"\n", "157f,1592");
-			fprintf(fp, "HuaweiNewMode=1\n");
 			break;
 		default:
 			fprintf(fp, "\n");
@@ -2156,8 +2166,12 @@ usb_dbg("3G: Auto setting.\n");
 			write_3g_conf(fp, SN_Huawei_E303u, 1, vid, pid);
 		else if(vid == 0x12d1 && pid == 0x15cd)
 			write_3g_conf(fp, SN_Huawei_E3531s, 1, vid, pid);
+		else if(vid == 0x12d1 && pid == 0x15e7)
+			write_3g_conf(fp, SN_Huawei_E3531, 1, vid, pid);
 		else if(vid == 0x12d1 && pid == 0x1f1e)
 			write_3g_conf(fp, SN_Huawei_K5160, 1, vid, pid);
+		else if(vid == 0x12d1 && pid == 0x1c1b)
+			write_3g_conf(fp, SN_Huawei_GP02, 1, vid, pid);
 		else if(vid == 0x12d1)
 			write_3g_conf(fp, UNKNOWNDEV, 1, vid, pid);
 		else{
@@ -2405,11 +2419,17 @@ int write_3g_ppp_conf(int modem_unit){
 		return 0;
 	}
 
-	char *modem_enable = nvram_safe_get("modem_enable");
-	char *user = nvram_safe_get("modem_user");
-	char *pass = nvram_safe_get("modem_pass");
-	char *isp = nvram_safe_get("modem_isp");
-	char *baud = nvram_safe_get("modem_baud");
+	char modem_enable[4];
+	char isp[128];
+	char user[128];
+	char pass[128];
+	char baud[64];
+
+	snprintf(modem_enable, sizeof(modem_enable), "%s", nvram_safe_get("modem_enable"));
+	snprintf(isp, sizeof(isp), "%s", nvram_safe_get("modem_isp"));
+	snprintf(user, sizeof(user), "%s", nvram_safe_get("modem_user"));
+	snprintf(pass, sizeof(pass), "%s", nvram_safe_get("modem_pass"));
+	snprintf(baud, sizeof(baud), "%s", nvram_safe_get("modem_baud"));
 
 	fprintf(fp, "/dev/%s\n", modem_node);
 	if(strlen(baud) > 0)
@@ -2500,11 +2520,17 @@ int write_beceem_conf(const char *eth_node)
 		return 0;
 	}
 
-	char *modem_enable = nvram_safe_get("modem_enable");
-	char *isp = nvram_safe_get("modem_isp");
-	char *user = nvram_safe_get("modem_user");
-	char *pass = nvram_safe_get("modem_pass");
-	char *ttlsid = nvram_safe_get("modem_ttlsid");
+	char modem_enable[4];
+	char isp[128];
+	char user[128];
+	char pass[128];
+	char ttlsid[64];
+
+	snprintf(modem_enable, sizeof(modem_enable), "%s", nvram_safe_get("modem_enable"));
+	snprintf(isp, sizeof(isp), "%s", nvram_safe_get("modem_isp"));
+	snprintf(user, sizeof(user), "%s", nvram_safe_get("modem_user"));
+	snprintf(pass, sizeof(pass), "%s", nvram_safe_get("modem_pass"));
+	snprintf(ttlsid, sizeof(ttlsid), "%s", nvram_safe_get("modem_ttlsid"));
 
 	if(strcmp(modem_enable, "4") || !strcmp(isp, "")){
 		usb_dbg("(%s): test 3.\n", eth_node);
@@ -2594,11 +2620,17 @@ int write_gct_conf(void)
 		return 0;
 	}
 
-	char *modem_enable = nvram_safe_get("modem_enable");
-	char *isp = nvram_safe_get("modem_isp");
-	char *user = nvram_safe_get("modem_user");
-	char *pass = nvram_safe_get("modem_pass");
-	char *ttlsid = nvram_safe_get("modem_ttlsid");
+	char modem_enable[4];
+	char isp[128];
+	char user[128];
+	char pass[128];
+	char ttlsid[64];
+
+	snprintf(modem_enable, sizeof(modem_enable), "%s", nvram_safe_get("modem_enable"));
+	snprintf(isp, sizeof(isp), "%s", nvram_safe_get("modem_isp"));
+	snprintf(user, sizeof(user), "%s", nvram_safe_get("modem_user"));
+	snprintf(pass, sizeof(pass), "%s", nvram_safe_get("modem_pass"));
+	snprintf(ttlsid, sizeof(ttlsid), "%s", nvram_safe_get("modem_ttlsid"));
 
 	if(strcmp(modem_enable, "4") || !strcmp(isp, "")){
 		file_unlock(lock);
@@ -2811,14 +2843,21 @@ hotplug_block(void)
 }
 #endif  /* RTCONFIG_BCMARM */
 
-#if defined(RTCONFIG_BCMARM) || defined(RTCONFIG_SOC_IPQ8064)
+#if defined(RTCONFIG_BCMARM) || defined(RTCONFIG_SOC_IPQ8064) || defined(RTCONFIG_ALPINE)
 /* Optimize performance */
 #define READ_AHEAD_KB_BUF       1024
 #define READ_AHEAD_CONF "/sys/block/%s/queue/read_ahead_kb"
+#ifdef RTCONFIG_ALPINE
+#define NR_REQUESTS_BUF       2048
+#define NR_REQUESTS_CONF "/sys/block/%s/queue/nr_requests"
+#endif
 static void optimize_block_device(const char *devname)
 {
 	char blkdev[8], *p;
 	char read_ahead_conf[64], valbuf[10];
+#ifdef RTCONFIG_ALPINE
+	char nr_requests_conf[64];
+#endif
 	int err;
 
 	memset(blkdev, 0, sizeof(blkdev));
@@ -2830,14 +2869,27 @@ static void optimize_block_device(const char *devname)
 		break;
 	}
 
-	sprintf(read_ahead_conf, READ_AHEAD_CONF, blkdev);
-	sprintf(valbuf, "%d", READ_AHEAD_KB_BUF);
+	snprintf(read_ahead_conf, sizeof(read_ahead_conf),
+					READ_AHEAD_CONF, blkdev);
+	snprintf(valbuf, sizeof(valbuf), "%d", READ_AHEAD_KB_BUF);
 	err = f_write_string(read_ahead_conf, valbuf, 0, 0);
 	hotplug_dbg("err = %d\n", err);
 
 	if (err < 0) {
 		hotplug_dbg("read ahead: unsuccess %d!\n", err);
 	}
+
+#ifdef RTCONFIG_ALPINE
+	snprintf(nr_requests_conf, sizeof(nr_requests_conf), 
+					NR_REQUESTS_CONF, blkdev);
+	snprintf(valbuf, sizeof(valbuf), "%d", NR_REQUESTS_BUF);
+	err = f_write_string(nr_requests_conf, valbuf, 0, 0);
+	hotplug_dbg("err = %d\n", err);
+
+	if (err < 0) {
+		hotplug_dbg("nr_requests: unsuccess %d!\n", err);
+	}
+#endif
 }
 #endif
 #endif // RTCONFIG_USB
@@ -3190,6 +3242,7 @@ int asus_sd(const char *device_name, const char *action)
 #endif
 	int modem_unit;
 	char tmp2[100], prefix2[32];
+	int intr_num;
 
 	usb_dbg("(%s): action=%s.\n", device_name, action);
 
@@ -3417,6 +3470,17 @@ after_change_xhcimode:
 	}
 #endif
 
+	intr_num = get_usb_interface_number(usb_node);
+	usb_dbg("(%s): Had %d interface on Port %s.\n", device_name, intr_num, usb_node);
+	if(intr_num > 0){
+#if 0
+		for(retry = 0; retry < intr_num; ++retry)
+			sleep(1);
+#else
+		sleep(intr_num);
+#endif
+	}
+
 	snprintf(prefix, sizeof(prefix), "usb_path%s", port_path);
 
 	memset(nvram_value, 0, 32);
@@ -3520,7 +3584,7 @@ after_change_xhcimode:
 	unsetenv("SUBSYSTEM");
 	unsetenv("USBPORT");
 
-#if defined(RTCONFIG_BCMARM) || defined(RTCONFIG_SOC_IPQ8064)
+#if defined(RTCONFIG_BCMARM) || defined(RTCONFIG_SOC_IPQ8064) || defined(RTCONFIG_ALPINE)
 	/* Optimize performance */
 	optimize_block_device(device_name);
 #endif
@@ -3750,7 +3814,8 @@ int asus_sg(const char *device_name, const char *action)
 		if(strcmp(nvram_safe_get("stop_sg_remove"), "1")){
 			usb_dbg("(%s): Running usb_modeswitch...\n", device_name);
 			xstart("usb_modeswitch", "-c", switch_file);
-#ifdef RTCONFIG_SOC_IPQ8064
+#if defined(RTCONFIG_SOC_IPQ8064) || defined(RTCONFIG_LANTIQ)
+			sleep(2);
 			usb_dbg("(%s): Running usb_modeswitch twice...\n", device_name);
 			xstart("usb_modeswitch", "-c", switch_file);
 #endif
@@ -3965,7 +4030,10 @@ int asus_tty(const char *device_name, const char *action)
 					return 0;
 				}
 
-				if(strncmp(act_dev, "usb", 3) && strncmp(act_dev, "wwan", 4) && strncmp(act_dev, "eth", 3)){
+				if(strncmp(act_dev, "usb", 3) && strncmp(act_dev, "wwan", 4) && strncmp(act_dev, "eth", 3)
+						// RNDIS devices should always be named "lte%d" in LTQ platform
+						&& strncmp(act_dev, "lte", 3)
+						){
 					snprintf(prefix, sizeof(prefix), "usb_path%s", port_path);
 					nvram_unset(strcat_r(prefix, "_act", tmp));
 					nvram_unset(strcat_r(prefix, "_act_def", tmp));
@@ -4479,7 +4547,7 @@ int asus_usb_interface(const char *device_name, const char *action)
 	int turn_on_led = 1;
 	char class_path[PATH_MAX], class[10] = "";
 #ifdef RTCONFIG_USB_MODEM
-	int modem_unit;
+	int modem_unit = 0;
 	char tmp2[100], prefix2[32];
 #endif
 
@@ -4622,11 +4690,15 @@ int asus_usb_interface(const char *device_name, const char *action)
 	// there is no any bounded drivers with Some Sierra dongles in the default state.
 	if(vid == 0x1199 && isStorageInterface(device_name)){
 		if(init_3g_param(port_path, vid, pid)){
-
 			if(strcmp(nvram_safe_get("stop_ui_remove"), "1")){
 				usb_dbg("(%s): Running usb_modeswitch...\n", device_name);
 				snprintf(modem_cmd, sizeof(modem_cmd), "%s.%s", USB_MODESWITCH_CONF, port_path);
 				xstart("usb_modeswitch", "-c", modem_cmd);
+#if defined(RTCONFIG_SOC_IPQ8064) || defined(RTCONFIG_LANTIQ)
+				sleep(2);
+				usb_dbg("(%s): Running usb_modeswitch twice...\n", device_name);
+				xstart("usb_modeswitch", "-c", modem_cmd);
+#endif
 			}
 
 			file_unlock(isLock);
@@ -4661,6 +4733,10 @@ int asus_usb_interface(const char *device_name, const char *action)
 #endif
 #ifdef RTCONFIG_USB_PRINTER
 	{
+		if (nvram_get_int("usb_printer") && !module_loaded(USBPRINTER_MOD)) {
+			symlink("/dev/usb", "/dev/printers");
+			modprobe(USBPRINTER_MOD);
+		}
 		// Wait if there is the printer interface.
 		retry = 0;
 		while(!hadPrinterModule() && retry < MAX_WAIT_PRINTER_MODULE){
@@ -4720,7 +4796,9 @@ int asus_usb_interface(const char *device_name, const char *action)
 	if(is_beceem_dongle(1, vid, pid)){
 		usb_dbg("(%s): Runing Beceem module...\n", device_name);
 
-		char *isp = nvram_safe_get("modem_isp");
+		char isp[128];
+
+		snprintf(isp, sizeof(isp), "%s", nvram_safe_get("modem_isp"));
 
 		eval("rm", "-rf", BECEEM_DIR);
 		eval("mkdir", "-p", BECEEM_DIR);

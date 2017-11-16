@@ -774,8 +774,11 @@ void start_vpnserver(int serverNum)
 	//protocol
 	sprintf(&buffer[0], "vpn_server%d_proto", serverNum);
 	fprintf(fp, "proto %s\n", nvram_safe_get(&buffer[0]));
-	if(!strcmp(nvram_safe_get(&buffer[0]), "udp"))
+	if(!strcmp(nvram_safe_get(&buffer[0]), "udp")) {
+		fprintf(fp, "proto udp\n");
+		fprintf(fp, "multihome\n");
 		fprintf(fp_client, "proto %s\n", nvram_safe_get(&buffer[0]));
+	}
 	else
 		fprintf(fp_client, "proto tcp-client\n");
 
@@ -1289,8 +1292,11 @@ void start_vpnserver(int serverNum)
 
         if (taskset_ret != 0)
 #endif
-
+#ifdef HND_ROUTER
+	sprintf(&buffer[0], "/etc/openvpn/vpnserver%d --sndbuf 262144 --rcvbuf 262144 --cd /etc/openvpn/server%d --config config.ovpn", serverNum, serverNum);
+#else
 	sprintf(&buffer[0], "/etc/openvpn/vpnserver%d --cd /etc/openvpn/server%d --config config.ovpn", serverNum, serverNum);
+#endif
 	vpnlog(VPN_LOG_INFO,"Starting OpenVPN: %s",&buffer[0]);
 	for (argv[argc=0] = strtok(&buffer[0], " "); argv[argc] != NULL; argv[++argc] = strtok(NULL, " "));
 	if ( _eval(argv, NULL, 0, &pid) )
@@ -1698,6 +1704,7 @@ void create_openvpn_passwd()
 	char *username, *passwd;
 	FILE *fp1, *fp2, *fp3;
 	int id = 200;
+	char dec_passwd[256];
 
 	strcpy(salt, "$1$");
 	f_read("/dev/urandom", s, 6);
@@ -1720,7 +1727,11 @@ void create_openvpn_passwd()
 		while ((b = strsep(&nvp, "<")) != NULL) {
 			if((vstrsep(b, ">", &username, &passwd)!=2)) continue;
 			if(strlen(username)==0||strlen(passwd)==0) continue;
-
+#ifdef RTCONFIG_NVRAM_ENCRYPT
+			memset(dec_passwd, 0, sizeof(dec_passwd));
+			pw_dec(passwd, dec_passwd);
+			passwd = dec_passwd;
+#endif
 			p = crypt(passwd, salt);
 			fprintf(fp1, "%s:%s:0:0:99999:7:0:0:\n", username, p);
 			fprintf(fp2, "%s:x:%d:%d:::\n", username, id, id);

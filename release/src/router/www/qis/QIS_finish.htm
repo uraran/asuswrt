@@ -89,6 +89,17 @@ var webs_state_info = '<% nvram_get("webs_state_info"); %>';
 var PPPOEFAILREASON = "<#qis_fail_desc9#>";
 var delayTimeout = 500;
 
+var sim_state = '<% nvram_get("usb_modem_act_sim"); %>';
+var modem_spn = '<% nvram_get("modem_spn"); %>';
+
+var first_wanstate = -1;
+var first_wansbstate = -1;
+var first_wanauxstate = -1;
+var second_wanstate = -1;
+var second_wansbstate = -1;
+var second_wanauxstate = -1;
+<% dual_wanstate(); %>
+
 if(parent.tmo_support)
         var theUrl = "cellspot.router"; 
 else
@@ -122,7 +133,7 @@ var timezones = {
 	"EBST3DST_1":	"(GMT-03:00)",
 	"UTC3":	"(GMT-03:00)",
 	"EBST3DST_2":	"(GMT-03:00)",
-	"NORO2DST":	"(GMT-02:00)",
+	"UTC2":	"(GMT-02:00)",
 	"EUT1DST":	"(GMT-01:00)",
 	"UTC1":	"(GMT-01:00)",
 	"GMT0":	"(GMT)",
@@ -131,7 +142,7 @@ var timezones = {
 	/*"GMT0DST_3":		"(GMT)",	use adj_dst to desc*/
 	"UTC-1DST_1":	"(GMT+01:00)",
 	"UTC-1_1_1":	"(GMT+01:00)",
-	"UTC-1_2":	"(GMT+01:00)",
+	"UTC-1DST_1_2":	"(GMT+01:00)",
 	"UTC-1_2_1":	"(GMT+01:00)",
 	"MET-1DST":	"(GMT+01:00)",
 	"MET-1DST_1":	"(GMT+01:00)",
@@ -139,7 +150,7 @@ var timezones = {
 	"MEZ-1DST_1":	"(GMT+01:00)",
 	"UTC-1_3":	"(GMT+01:00)",
 	"UTC-2DST":	"(GMT+02:00)",
-	"EST-2DST":	"(GMT+02:00)",
+	"EST-2":	"(GMT+02:00)",
 	"UTC-2_1":	"(GMT+02:00)",
 	"UTC-2DST_2":	"(GMT+02:00)",
 	"IST-2DST":	"(GMT+02:00)",
@@ -153,7 +164,7 @@ var timezones = {
 	"UTC-4_2":	"(GMT+04:00)",
 	"UTC-4_3":	"(GMT+04:00)",
 	"UTC-4_1":	"(GMT+04:00)",
-	"UTC-4DST_2":	"(GMT+04:00)",
+	"UTC-4_6":	"(GMT+04:00)",
 	"UTC-4.30":	"(GMT+04:30)",
 	"UTC-5":	"(GMT+05:00)",
 	"UTC-5.30_2":	"(GMT+05:30)",
@@ -179,11 +190,11 @@ var timezones = {
 	"UTC-10_3":	"(GMT+10:00)",
 	"UTC-10_1":	"(GMT+10:00)",
 	"UTC-10_2":	"(GMT+10:00)",
-	"TST-10TDT":	"(GMT+10:00)",
-	"UTC-10_5":	"(GMT+10:00)",
+	"TST-10TDT":	"(GMT+10:00)",	
 	"UTC-11_2":	"(GMT+11:00)",
 	"UTC-11":	"(GMT+11:00)",
 	"UTC-11_1":	"(GMT+11:00)",
+	"UTC-11_4":	"(GMT+11:00)",
 	"UTC-12":	"(GMT+12:00)",
 	"NZST-12DST":	"(GMT+12:00)",
 	"UTC-13":	"(GMT+13:00)"
@@ -216,6 +227,25 @@ function yadns_change(need_apply){
 	yadns_update.yadns_enable_x.value = enable ? "1" : "0";
 	yadns_update.yadns_mode.value = (enable && defmode) ? "1" : yadns_mode;
 	yadns_update.submit();
+}
+
+var get_protocol = function() {
+	var protocol = "http:";
+	if(window.location.protocol == "http:" || window.location.protocol == "https:") {
+		protocol = window.location.protocol;
+		return protocol;
+	}
+
+	return protocol;
+};
+var header_info = [<% get_header_info(); %>];
+var location_org = get_protocol() + "//" + header_info[0].host;
+
+function yadns_change(need_apply){
+	var enable = document.getElementById("yadns_enable").checked;
+
+	parent.yadns_stage = need_apply ? 1 : 0;
+	document.getElementById("yadns_defmode").disabled = !enable;
 }
 
 /* Live update */
@@ -314,11 +344,6 @@ function showLoadingUpdate(){
 	progressBar++;	
 }
 
-/* Find device (callback) */
-function iAmAlive(){
-	top.location.href = "http://" + parent.staticIP;
-}
-
 /* Restart service (run automatically) */
 function restartService(){
 	document.restartForm.force_change.value++;
@@ -369,7 +394,7 @@ function restartService(){
 		if(parent.restartWireless){
 			actionScriptArray.push("restart_wireless");
 			document.restartForm.action_wait.value = 6;
-			if(parent.based_modelid == "RT-AC82U" || parent.based_modelid == "RT-AC58U")
+			if(parent.based_modelid == "RT-AC82U" || parent.based_modelid == "RT-AC58U" || parent.based_modelid == "4G-AC53U")
 				delayTimeout = 20000;
 		}
 		if(parent.restartTime){
@@ -378,10 +403,6 @@ function restartService(){
 		}
 
 		document.restartForm.action_script.value = actionScriptArray.join(";");
-	}	
-
-	if((parent.based_modelid == "4G-AC55U" || parent.based_modelid == "4G-AC68U") && wans_mode == "lb"){
-		document.restartForm.wans_mode.disabled = false;
 	}
 
 	document.restartForm.submit();
@@ -416,12 +437,6 @@ function checkIsNewFirmware(){
 		}
 	}
 	else{
-		if((parent.based_modelid == "4G-AC55U" || parent.based_modelid == "4G-AC68U") && parent.wan_autodet_state == "4" && parent.usb_connected == 1 && wans_dualwan_orig == "wan usb"){
-			document.restartForm.wans_dualwan.disabled = false;
-			document.restartForm.wans_dualwan.value = "usb wan";
-			parent.sysReboot = true;
-		}
-
 		if(parent.sysReboot){
 			document.getElementById('loadingIcon').style.display = '';
 			restartService();
@@ -431,6 +446,11 @@ function checkIsNewFirmware(){
 			document.restartForm.action_script.value = "restart_subnet";
 			document.getElementById('loadingIcon').style.display = '';
 			document.restartForm.submit();
+		}
+		else if(parent.yadns_support && parent.yadns_stage == 1) {
+			parent.yadns_stage++;
+			yadns_apply();
+			setTimeout("parent.location.href='/index.asp'", 10000);
 		}
 		else{
 			document.getElementById('loadingIcon').style.display = '';
@@ -1245,7 +1265,10 @@ function QKfinish_load_body(){
 				}
 				else{
 					document.getElementById("wanip").style.display = "none";
-					document.getElementById("wanstatus1").innerHTML = "<#Status_Inactive#>";
+					if((parent.ewan_index == 0 && first_wanstate == "1" && first_wansbstate == "0" && first_wanauxstate == "0") || (parent.usb_index == 0 && sim_state == "1" && modem_spn != ""))
+						document.getElementById("wanstatus1").innerHTML = "<#Connecting_str#>";
+					else
+						document.getElementById("wanstatus1").innerHTML = "<#Status_Inactive#>";
 				}
 				
 				if(parent.wans_dualwan_array[1] != "none"){
@@ -1262,7 +1285,10 @@ function QKfinish_load_body(){
 					}
 					else{
 						document.getElementById("wanip2").style.display = "none";
-						document.getElementById("wanstatus2").innerHTML = "<#Status_Inactive#>";
+						if((parent.ewan_index == 1 && second_wanstate == "1" && second_wansbstate == "0" && second_wanauxstate == "0") || (parent.usb_index == 1 && sim_state == "1" && modem_spn != ""))
+							document.getElementById("wanstatus2").innerHTML = "<#Connecting_str#>";
+						else
+							document.getElementById("wanstatus2").innerHTML = "<#Status_Inactive#>";
 					}
 				}
 			}
@@ -1306,24 +1332,7 @@ function QKfinish_load_body(){
 				$("#lanip")[0].innerHTML = parent.staticIP;
 				document.getElementById("applyBtn").innerHTML = "<div style='text-align:left;margin-left:70px;'><br/><br/><#SAVE_restart_desc#><br><#LAN_IP_changed_suggedtion1#>&nbsp;" + parent.staticIP + "&nbsp;<#LAN_IP_changed_suggedtion2#></div>";
 				
-				var startQuery = function(){
-					$.ajax({ 
-						url: location_org.replace(header_info[0].host, parent.staticIP) + "/httpd_check.json",
-						dataType: 'jsonp',
-						timeout: 2000,
-
-						error: function(){
-							setTimeout(function(){
-								startQuery();
-							}, 1000);
-						}
-					});
-
-				}
-
-				setTimeout(function(){
-					startQuery();
-				}, 80000);
+				setTimeout(startQuery, 80000);
 			}
 			else{
 				$("#lanip")[0].innerHTML = "<#BOP_ctype_title1#>";
@@ -1379,6 +1388,20 @@ function QKfinish_load_body(){
 		restartService();
 	}, 1000);
 }
+
+var startQuery = function(){
+	$.ajax({ 
+		url: location_org.replace(header_info[0].host, parent.staticIP) + "/repage.json",
+		dataType: "script",
+		timeout: 5000,
+		error: function(){
+			setTimeout(startQuery, 1000);
+		},
+		success: function(){
+			top.location.href = location_org.replace(header_info[0].host, parent.staticIP);
+		}
+	});
+};
 </script>
 </head>
 
@@ -1817,7 +1840,6 @@ function QKfinish_load_body(){
 	<input type="hidden" name="action_wait" value="0">
 	<input type="hidden" name="x_Setting" value="1">
 	<input type="hidden" name="force_change" value="<% nvram_get("force_change"); %>">
-	<input type="hidden" name="wans_mode" value="fo" disabled>
 	<input type="hidden" name="wans_dualwan" value="<% nvram_get("wans_dualwan"); %>" disabled>
 	<!--USB Modem-->
 	<input type="hidden" name="modem_enable" value="<% nvram_get("modem_enable"); %>" disabled>

@@ -2,7 +2,7 @@
 	when traffic analyzer is enabled, bwdpi_db_10 will start to save database each minute, after 10 mins, it will be killed.
 */
 #include <rc.h>
-#include <bwdpi.h>
+#include <bwdpi_common.h>
 
 static int sig_cur = -1;
 static int count = 0;

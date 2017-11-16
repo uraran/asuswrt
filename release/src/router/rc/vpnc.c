@@ -142,7 +142,10 @@ start_vpnc(void)
 				    "nomppe-56\n"
 				    "require-mppe\n"
 				    "require-mppe-128\n");
-		}
+		} else
+		if (nvram_match(strcat_r(prefix, "pptp_options_x", tmp), ""))
+			fprintf(fp, "require-mppe-40\n"
+				    	"require-mppe-128\n");
 	} else {
 		fprintf(fp, "nomppe nomppc\n");
 
@@ -426,6 +429,7 @@ void vpnc_add_firewall_rule()
 void
 vpnc_up(char *vpnc_ifname)
 {
+	int ret = 0;
 	char tmp[100], prefix[] = "vpnc_", wan_prefix[] = "wanXXXXXXXXXX_";
 	char *wan_ifname = NULL, *wan_proto = NULL;
 
@@ -458,8 +462,12 @@ vpnc_up(char *vpnc_ifname)
 	}
 	
 	/* Add the default gateway of VPN client */
-	route_add(vpnc_ifname, 0, "0.0.0.0", nvram_safe_get(strcat_r(prefix, "gateway", tmp)), "0.0.0.0");
-
+	ret = route_add(vpnc_ifname, 0, "0.0.0.0", nvram_safe_get(strcat_r(prefix, "gateway", tmp)), "0.0.0.0");
+	if(ret != 0) {
+		_dprintf("%s: fail to add route table\n", __FUNCTION__);
+		update_vpnc_state(prefix, WAN_STATE_STOPPED, WAN_STOPPED_REASON_IPGATEWAY_CONFLICT);
+		return;
+	}
 	/* Remove route to the gateway - no longer needed */
 	route_del(vpnc_ifname, 0, nvram_safe_get(strcat_r(prefix, "gateway", tmp)), NULL, "255.255.255.255");
 

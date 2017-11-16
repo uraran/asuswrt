@@ -18,11 +18,16 @@ else
 	HTTP_VERSION=3.1.0.97
 	OPENSSL_VERSION=1.0.2j.v001
 endif
-else ifeq ($(or $(RTCONFIG_QCA),$(RTCONFIG_REALTEK)),y)
+else ifeq ($(or $(RTCONFIG_QCA),$(RTCONFIG_REALTEK),$(RTCONFIG_LANTIQ)),y)
 	pkg_type=mipsbig
 	DM_VERSION=3.1.0.101
 	HTTP_VERSION=3.1.0.97
 	OPENSSL_VERSION=1.0.2j.v001
+else ifeq ($(RTCONFIG_NEW_APP_ARM),y)
+	pkg_type=arm
+	DM_VERSION=9.1.0.101
+	HTTP_VERSION=9.1.0.97
+	OPENSSL_VERSION=9.1.0.2j.v001
 else
 	pkg_type=mipsel
 	DM_VERSION=3.1.0.101
@@ -74,6 +79,8 @@ ifeq ($(RTCONFIG_NEW_APP_ARM),y)
 else
 	install -m 0644 optware.mbwe-bluering $(INSTALLDIR)/rom
 endif
+else ifeq ($(RTCONFIG_NEW_APP_ARM),y)
+	install -m 0644 optware.armeabi-ng $(INSTALLDIR)/rom
 else
 	install -m 0644 optware.oleg $(INSTALLDIR)/rom
 endif
@@ -120,9 +127,7 @@ ifeq ($(RTCONFIG_USB_MODEM),y)
 	install -m 0755 apps_scripts/modem_*.sh $(INSTALLDIR)/usr/sbin
 	install -m 0755 apps_scripts/3ginfo.sh $(INSTALLDIR)/usr/sbin
 ifeq ($(RTCONFIG_INTERNAL_GOBI),y)
-ifeq ($(RT4GAC55U),y)
 	install -m 0755 apps_scripts/gobi_update.sh $(INSTALLDIR)/usr/sbin
-endif
 endif
 endif
 endif
@@ -134,7 +139,7 @@ endif
 ifeq ($(RTCONFIG_AUTOLIVEUPDATE_ZIP),y)
 	cp -f webs_scripts/zip_webs_upgrade.sh $(INSTALLDIR)/usr/sbin/webs_upgrade.sh
 	cp -f webs_scripts/zip_webs_update.sh $(INSTALLDIR)/usr/sbin/webs_update.sh
-ifeq ($(RTCONFIG_BWDPI),y)
+ifeq ($(or $(RTCONFIG_BWDPI),$(RTCONFIG_BWDPI_DEP)),y)
 	cp -f webs_scripts/sig2nd_upgrade.sh $(INSTALLDIR)/usr/sbin/sig_upgrade.sh
 	cp -f webs_scripts/sig2nd_update.sh $(INSTALLDIR)/usr/sbin/sig_update.sh
 endif
@@ -146,6 +151,7 @@ ifeq ($(RTCONFIG_HTTPS),y)
 	cp -f webs_scripts/ssl_webs_upgrade.sh $(INSTALLDIR)/usr/sbin/webs_upgrade.sh
 ifeq ($(RTCONFIG_CFGSYNC),y)
 	cp -f webs_scripts/ssl_webs_download.sh $(INSTALLDIR)/usr/sbin/webs_download.sh
+	cp -f webs_scripts/ssl_webs_note.sh $(INSTALLDIR)/usr/sbin/webs_note.sh
 endif
 else
 	cp -f webs_scripts/nozip_webs_upgrade.sh $(INSTALLDIR)/usr/sbin/webs_upgrade.sh
@@ -162,7 +168,7 @@ ifeq ($(AC2900),y)
 	cp -f webs_scripts/verizon_webs_update.sh $(INSTALLDIR)/usr/sbin/webs_update.sh
 endif
 
-ifeq ($(RTCONFIG_BWDPI),y)
+ifeq ($(or $(RTCONFIG_BWDPI),$(RTCONFIG_BWDPI_DEP)),y)
 	cp -f webs_scripts/sig2nd_upgrade.sh $(INSTALLDIR)/usr/sbin/sig_upgrade.sh
 	cp -f webs_scripts/sig2nd_update.sh $(INSTALLDIR)/usr/sbin/sig_update.sh
 endif
@@ -198,6 +204,13 @@ ifeq ($(RTAC68U),y)
 	cp -rf cfe/mtd-write $(INSTALLDIR)/rom/cfe/
 endif
 
+ifeq ($(RTAC3200),y)
+	mkdir -p $(INSTALLDIR)/rom/cfe
+	cp -rf cfe/cfe_rt-ac3200_1.0.1.7_128k.bin $(INSTALLDIR)/rom/cfe
+	cp -rf cfe/cfe_rt-ac3200_2.0.0.4_128k.bin $(INSTALLDIR)/rom/cfe
+	cp -rf cfe/mtd-write $(INSTALLDIR)/rom/cfe/
+endif
+
 ifeq ($(RTCONFIG_MEDIA_SERVER),y)
 	mkdir -p $(INSTALLDIR)/rom/dlna
 ifeq ($(BUILD_NAME), RT-AC68U)
@@ -221,3 +234,11 @@ endif
 
 	install -m 0755 webs_scripts/GoogleDNS_Update.sh $(INSTALLDIR)/usr/sbin
 
+ifeq ($(RTCONFIG_LETSENCRYPT),y)
+	install -m 0644 rom/etc/ssl/certs/DST_Root_CA_X3.pem $(INSTALLDIR)/rom/etc/ssl/certs/letsencrypt.pem
+endif
+
+ifeq ($(HND_ROUTER),y)
+	mkdir -p $(INSTALL_DIR)/rom/rom/usr/share/zoneinfo
+	cp -rf zoneinfo/* $(INSTALL_DIR)/rom/rom/usr/share/zoneinfo/
+endif

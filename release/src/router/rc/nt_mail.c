@@ -30,6 +30,7 @@ void am_setup_email_conf()
 {
 	FILE *fp;
 	char smtp_auth_pass[256];
+	memset(smtp_auth_pass, 0, sizeof(smtp_auth_pass));
 	
 	AM_DBG("start to write conf %s\n", MAIL_CONF);
 
@@ -40,8 +41,10 @@ void am_setup_email_conf()
 		return;
 	}
 
-#ifdef RTCONFIG_HTTPS
-	strncpy(smtp_auth_pass,pwdec(nvram_get("PM_SMTP_AUTH_PASS")),256);
+#if defined(RTCONFIG_NVRAM_ENCRYPT)
+	pw_dec(nvram_get("PM_SMTP_AUTH_PASS"), smtp_auth_pass);
+#elif defined(RTCONFIG_HTTPS)
+	pwdec(nvram_get("PM_SMTP_AUTH_PASS"), smtp_auth_pass);
 #else
 	strncpy(smtp_auth_pass,nvram_get("PM_SMTP_AUTH_PASS"),256);
 #endif

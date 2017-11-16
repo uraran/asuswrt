@@ -21,6 +21,10 @@ CFLAGS += -I$(TOP)/libqcsapi_client -I$(TOP)/httpd -I./sysdeps/qtn
 LDFLAGS += -L$(TOP)/libqcsapi_client -lqcsapi_client
 endif
 
+ifeq ($(RTCONFIG_AMAS),y)
+LDFLAGS += -L$(TOP)/json-c/.libs -ljson-c
+endif
+
 ifeq ($(CONFIG_KERNEL_PTHREAD_ONE),y)
 CFLAGS += -DCONFIG_LINUX3X_OR_4X
 endif
@@ -38,9 +42,9 @@ MDIRS = lib
 
 ifeq ($(wildcard $(SRCBASE)/router/protect_srv/*.c),)
 all: 
-	-cp -f prebuilt/protect_srv protect_srv
-	-cp -f prebuilt/Send_Event2ptcsrv Send_Event2ptcsrv
-	-cp -f lib/prebuilt/libptcsrv.so lib
+	-cp -f prebuild/protect_srv protect_srv
+	-cp -f prebuild/Send_Event2ptcsrv Send_Event2ptcsrv
+	-cp -f lib/prebuild/libptcsrv.so lib
 
 else
 all: ptcsrvdir Send_Event2ptcsrv protect_srv

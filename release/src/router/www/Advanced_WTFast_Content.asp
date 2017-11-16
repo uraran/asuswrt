@@ -236,7 +236,7 @@ for(var i = 1; i < wtfast_rulelist_row.length; i ++) {
 
 var saved_game_list = decodeURIComponent('<% nvram_char_to_ascii("", "wtf_game_list"); %>');
 var saved_server_list = decodeURIComponent('<% nvram_char_to_ascii("", "wtf_server_list"); %>');
-var wtf_enable_games = "";
+
 //	[ToDo] This JSON should be stored in the router or get form wtfd.
 var wtfast_status = [<% wtfast_status();%>][0];
 
@@ -294,7 +294,7 @@ function initial(){
 	if( sVer!= -1 || rv == 11)
   		document.getElementById("pull_arrow").style.marginLeft = "-4px";
 
-  	if(based_modelid === "GT-AC5300"){ 
+  	if(based_modelid === "GT-AC5300" || based_modelid == "GT-AC9600"){ 
   		$("#goBackBtn").hide();
   		$("#goBackBtn_M").hide();
   		document.getElementById("WTFast_login_div").style.top = "150px";
@@ -384,7 +384,6 @@ function applyRule(){
 	}
 
 	document.form.wtf_rulelist.value = wtfast_rulelist;
-	document.form.wtf_enable_game.value = wtf_enable_games;
 	showLoading();
 	document.form.submit();
 }
@@ -504,9 +503,6 @@ function addRule(){
 
 		if(addRule){
 			wtfast_rulelist_array.push([rule_enable, document.form.clientmac_x_0.value.toUpperCase(), document.form.server_1_list.value, document.form.server_2_list.value, document.form.game_list.value]);
-			if(rule_enable == "1" && (wtf_enable_games.indexOf(document.form.game_list.value) == -1)){
-				wtf_enable_games += "<" + document.form.game_list.value;
-			}
 			update_rulelist(1);
 			show_rulelist();
 		}
@@ -791,6 +787,8 @@ var isOldIE = navigator.userAgent.search("MSIE") > -1;
 function show_login_page(show){
 	if(show){
 		document.getElementById("WTFast_login_div").style.display = "";
+		document.getElementById("wtf_username").disabled = false;
+		document.getElementById("wtf_passwd").disabled = false;
 		if(isChrome){
 			showFire();
 			document.getElementById("fire_pic").style.display = "none";
@@ -814,6 +812,8 @@ function show_management_page(show){
 	if(show){
 		document.getElementById("error_msg").innerHTML = "";
 		document.getElementById("ManagementPage").style.display = "";
+		document.getElementById("wtf_username").disabled = true;
+		document.getElementById("wtf_passwd").disabled = true;
 	}
 	else
 		document.getElementById("ManagementPage").style.display = "none";
@@ -822,7 +822,7 @@ function show_management_page(show){
 	[ToDo] callback function to handle the response from wtfast web server.
 */
 function checkLoginStatus(){
-	if(wtfast_status.Login_status == 1 && (typeof(wtfast_status.eMail) != "undefined" && wtfast_status.eMail != "")){
+	if(wtfast_status.Login_status == 1){
 		show_info();
 		show_login_page(0);
 		show_management_page(1);
@@ -940,16 +940,23 @@ function wtf_logout(){
 				session_hash: wtfast_status.Session_Hash
 			},
 			success: function( response ) {
-				wtfast_status = response;
-				reset_rule_state();
-				update_rulelist(0);
-				document.wtfast_form.wtf_rulelist.value = wtfast_rulelist;
-				document.wtfast_form.action_mode.value = "wtfast_logout";
-				document.wtfast_form.submit();
-				show_management_page(0);
-				show_login_page(1);
-				document.getElementById("loadingIcon_logout").style.display = "none";
-				document.getElementById("logout_button").style.display = "";
+				$.ajax({
+					url: "/apply.cgi",
+					type: "POST",
+					data: {
+						action_mode: "wtfast_logout",
+						wtf_rulelist: wtfast_rulelist,
+						wtf_login: response.Login_status,
+					},
+					success: function( response ) {
+						reset_rule_state();
+						update_rulelist(0);
+						show_management_page(0);
+						show_login_page(1);
+						document.getElementById("loadingIcon_logout").style.display = "none";
+						document.getElementById("logout_button").style.display = "";
+					}
+				});
 			}		
 		});
 	}
@@ -1042,7 +1049,6 @@ function clean_macerr(){
 <input type="hidden" name="preferred_lang" id="preferred_lang" value="<% nvram_get("preferred_lang"); %>">
 <input type="hidden" name="firmver" value="<% nvram_get("firmver"); %>">
 <input type="hidden" name="wtf_rulelist" value="">
-<input type="hidden" name="wtf_enable_game" value="">
 
 <table width="98%" border="0" align="left" cellpadding="0" cellspacing="0">
 	<tr>
@@ -1056,7 +1062,7 @@ function clean_macerr(){
 			</td>
 			<td style="height:75px; vertical-align: top;">
 				<div style="margin-left:15px; margin-right:10px; color:#EAE9E9; font-size:13px; font-weight:bolder;">
-					<#Game_Boost_desc1#>
+					<#Game_Boost_desc#>
 				</div>
 			</td>
 		</tr>
@@ -1078,9 +1084,9 @@ function clean_macerr(){
 		<table style="margin-top:10px;  width:760px;">
 			<tr><td colspan="2" style="color:#EBE8E8; font-size:20px; font-weight:bold; text-align:center;"><div id="Game_Boost_login_div"></div></td></tr>
 			<tr>
-				<th style="width:254px; height:35px; color:#949393; font-size:14px; text-align:right; padding-right:15px;">E-Mail</th><!--untranslated-->
+				<th style="width:200px; height:35px; color:#949393; font-size:14px; text-align:right; padding-right:15px;">E-Mail</th><!--untranslated-->
 				<td style="color:#949393; font-size:14px; text-align:left;">
-				<input type="text" maxlength="32" class="login_input" id="wtf_username" name="wtf_username" value="" onkeypress="return validator.isString(this, event)" autocorrect="off" autocapitalize="off" >
+				<input type="text" maxlength="32" class="login_input" id="wtf_username" name="wtf_username" value="" onkeypress="return validator.isString(this, event)" autocorrect="off" autocapitalize="off">
 				<span ><a href="javascript:open_link('newAccount')" style="margin-left:5px;text-decoration:underline;color:#949393;"><#create_free_acc#></a></span>
 				</td>
 			</tr>
@@ -1100,7 +1106,7 @@ function clean_macerr(){
 				</td>
 			</tr>
 		</table>
-		<div style="color:#949393; font-size:12px; text-align:center;">*Note: As you use Game Boost powered by WTFast, you agree with WTFast <span><a href="javascript:open_link('terms')" style="text-decoration:underline;color:#008DE5;">Terms of Use</a></span> and <span><a href="javascript:open_link('privacy')" style="text-decoration:underline;color:#008DE5;">Privacy Policy</a></span>.</div>
+		<div style="color:#ffffff; font-size:12px; text-align:center;"><#Manual_Setting_notice#> <#GB_management_note1#></div>
 		<div>
 			<canvas id="fire" style="width:760px;height:430px; display:block;position:absolute; top:491px; z-index:-1;"></canvas>
 			<img id="fire_pic" style="position: absolute; top: 499px; z-index: -1; margin-left: 3px;display:none;" src="images/fire.jpg">
@@ -1164,8 +1170,8 @@ function clean_macerr(){
 							  		<span id="max_computers"></span>
 								</td>
 								<td id="ended_date_td">
-							  		<span id="ended_date"></span><span id="days_title" style="margin-left:10px;">( Days Left: <span id="days_left"></span> )</span> <!--untranslated-->
-							  		<div id="trail_desc" style="color:#FFCC00; margin-top: 10px;">WTFast provides every new user 14 days advanced trial period, this is only concerning the Advanced account with more proxy server options. After the trial period expires, you can still enjoy a lifetime subscription with basic account features which is free and with traffic limits.</div><!--untranslated-->
+							  		<span id="ended_date"></span><span id="days_title" style="margin-left:10px;">(Days Left: <span id="days_left"></span>)</span> <!--untranslated-->
+							  		<div id="trail_desc" style="color:#FFCC00; margin-top: 10px;"><#GB_ended_date_desc#></div>
 								</td>
 							</tr>
 						</table>
@@ -1217,7 +1223,7 @@ function clean_macerr(){
 						<table cellspacing="0"><tr><td><div id="wtfast_rulelist_Block"></div></td></tr></table>
 						<ul>
 							<li style="color: #FFCC00;"><div class="comment_div"><#GB_management_note1#></div></li>
-							<li style="color: #FFCC00;"><div class="comment_div">WTFast is still working on the development of game console support, which we have also stated in the disclaimer on our product page. For a list of the games that are currently supported please refer to <span><a href="javascript:open_link('gameList')" style="text-decoration:underline;color:#008DE5;">this list</a></span>. (updated on a regular basis)</div></li>
+							<li style="color: #FFCC00;"><div class="comment_div"><#GB_management_note2#></div></li>
 							<li style="color: #FFCC00;"><div class="comment_div"><#GB_management_note3#></div></li>
 							<li style="color: #FFCC00;"><div class="comment_div"><#GB_management_note4#></div></li>
 							<li style="color: #FFCC00;"><div class="comment_div"><#GB_management_note5#></div></li>
@@ -1240,13 +1246,5 @@ function clean_macerr(){
 </form>
 
 <div id="footer"></div>
-<form method="post" name="wtfast_form" action="/apply.cgi" target="hidden_frame">
-<input type="hidden" name="action_mode" value="">
-<input type="hidden" name="action_script" value="">
-<input type="hidden" name="action_wait" value="">
-<input type="hidden" name="wtf_username" value="">
-<input type="hidden" name="wtf_passwd" value="">
-<input type="hidden" name="wtf_rulelist" value="">
-</form>
 </body>
 </html>

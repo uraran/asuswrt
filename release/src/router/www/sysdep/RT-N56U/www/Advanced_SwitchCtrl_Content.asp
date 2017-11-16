@@ -55,8 +55,8 @@ function valid_form(){
 	   !validator.range(document.form.switch_ctrlrate_broadcast, 0, 1024)){
 			return false;
 	}
-		
-	return true;	
+
+	return true;
 }
 
 </script>

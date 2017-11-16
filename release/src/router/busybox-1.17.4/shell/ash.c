@@ -280,6 +280,9 @@ static const char *var_end(const char *var)
 
 
 /* ============ Interrupts / exceptions */
+
+static void exitshell(void) NORETURN;
+
 /*
  * These macros allow the user to suspend the handling of interrupt signals
  * over a period of time.  This is similar to SIGHOLD or to sigblock, but
@@ -9458,10 +9461,21 @@ preadfd(void)
 	if (!iflag || g_parsefile->pf_fd != STDIN_FILENO)
 		nr = nonblock_safe_read(g_parsefile->pf_fd, buf, IBUFSIZ - 1);
 	else {
+		int timeout = -1;
+# if ENABLE_ASH_IDLE_TIMEOUT
+		if (iflag) {
+			const char *tmout_var = lookupvar("TMOUT");
+			if (tmout_var) {
+				timeout = atoi(tmout_var) * 1000;
+				if (timeout <= 0)
+					timeout = -1;
+			}
+		}
+# endif
 #if ENABLE_FEATURE_TAB_COMPLETION
 		line_input_state->path_lookup = pathval();
 #endif
-		nr = read_line_input(cmdedit_prompt, buf, IBUFSIZ, line_input_state);
+		nr = read_line_input(line_input_state, cmdedit_prompt, buf, IBUFSIZ, timeout);
 		if (nr == 0) {
 			/* Ctrl+C pressed */
 			if (trap[SIGINT]) {
@@ -9472,9 +9486,17 @@ preadfd(void)
 			}
 			goto retry;
 		}
-		if (nr < 0 && errno == 0) {
-			/* Ctrl+D pressed */
-			nr = 0;
+		if (nr < 0) {
+			if (errno == 0) {
+				/* Ctrl+D pressed */
+				nr = 0;
+			}
+# if ENABLE_ASH_IDLE_TIMEOUT
+			else if (errno == EAGAIN && timeout > 0) {
+				printf("\007timed out waiting for input: auto-logout\n");
+				exitshell();
+			}
+# endif
 		}
 	}
 #else
@@ -12714,7 +12736,6 @@ ulimitcmd(int argc UNUSED_PARAM, char **argv)
 /*
  * Called to exit the shell.
  */
-static void exitshell(void) NORETURN;
 static void
 exitshell(void)
 {

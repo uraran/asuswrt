@@ -120,14 +120,19 @@ Set Up Environment(Tested in Fedora 8/9 and Ubuntu)
 	    	    - extract mips-2012.03.tar.bz2 directory to /opt
 		    - add /opt/mips-2012.03/bin to your uboot path
 
-	Qualcomm QCA9557 MIPS SoC models
+	Qualcomm QCA9557/QCA953x/QCA956x MIPS SoC models
 	================================
 
-		For example, RT-AC55U, 4G-AC55U.
-
-		For example, RT-AC55U, 4G-AC55U.
-
 		To install the tools:
+		    Mesh Router:
+		    - extract tools/openwrt-gcc463.mips.mesh.tar.bz2 directory to /opt
+		    - add /opt/openwrt-gcc463.mips.mesh/bin to your path
+		    - If you want to build small utilities out of asuswrt box,
+		      add STAGING_DIR environment variable as below:
+
+		      export STAGING_DIR=/opt/openwrt-gcc463.mips.mesh
+
+		    Others: (For example, RT-AC55U, 4G-AC55U.)
 	    	    - extract tools/openwrt-gcc463.mips.tar.bz2 directory to /opt
 		    - add /opt/openwrt-gcc463.mips/bin to your path
 		    - If you want to build small utilities out of asuswrt box,
@@ -183,14 +188,18 @@ Set Up Environment(Tested in Fedora 8/9 and Ubuntu)
 		make rt-ac55u
 		( make rt-ac55uhp )
 
-	g. brt-ac828 (/ rt-ac88q )
+	g. brt-ac828 (/ rt-ac88q / rt-ad7200 )
 		cd release/src-qca-ipq8064
 		make brt-ac828
+		( make rt-ad7200 )
 
-	h. rt-ac58u (/ rt-ac82u )
+	h. rt-ac58u (/ rt-ac82u / map-ac1300 / map-ac2200 / vzw-ac1300 )
 		cd release/src-qca-dakota
 		make rt-ac58u
 		( make rt-ac82u )
+		( make map-ac1300 )
+		( make map-ac2200 )
+		( make vzw-ac1300 )
 
 	i. rt-ac85u (/ rt-ac85u / rt-ac65u / rp-ac87 )
 		cd release/src-ra-5010
@@ -206,4 +215,10 @@ Set Up Environment(Tested in Fedora 8/9 and Ubuntu)
 		( make rt-ac1200gu )
 		( make rt-ac51u+ )
 		( make rt-ac53 )
+
+	k. rp-ac68u (/ rp-ac53 / rp-ac55 )
+		cd release/src-rtk-819x
+		make rp-ac68u
+		( make rp-ac53 )
+		( make rp-ac55 )
 

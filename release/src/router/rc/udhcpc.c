@@ -177,7 +177,7 @@ opt_get(const void *buf, size_t size, unsigned char id)
 static char
 *stropt(const struct opt_hdr *opt, char *buf)
 {
-	*stpncpy(buf, opt->data, opt->len) = '\0';
+	*stpncpy(buf, (char *)opt->data, opt->len) = '\0';
 	return buf;
 }
 
@@ -206,9 +206,10 @@ struct duid {
 } __attribute__ ((__packed__));
 
 /* Generate DUID-LL */
-int get_duid(struct duid *duid)
+static int get_duid(struct duid *duid)
 {
-	if (!duid || !ether_atoe(get_lan_hwaddr(), duid->ea))
+	/* Use device default MAC */
+	if (!duid || !ether_atoe(get_label_mac(), duid->ea))
 		return 0;
 
 	duid->type = htons(3);		/* DUID-LL */
@@ -298,6 +299,9 @@ bound(void)
 	char wanprefix[sizeof("wanXXXXXXXXXX_")];
 	int unit, ifunit;
 	int changed = 0;
+#if defined(RTCONFIG_PORT_BASED_VLAN) || defined(RTCONFIG_TAGGED_BASED_VLAN)
+	char ip_mask[sizeof("192.168.100.200/255.255.255.255XXX")];
+#endif
 #ifdef RTCONFIG_TR069
 	size_t size = 0;
 #endif
@@ -378,7 +382,7 @@ bound(void)
 
 #ifdef RTCONFIG_IPV6
 	if ((value = getenv("ip6rd")) &&
-			(get_ipv6_service() == IPV6_6RD && nvram_match(ipv6_nvname("ipv6_6rd_dhcp"), "1"))) {
+	    (get_ipv6_service() == IPV6_6RD && nvram_match(ipv6_nvname("ipv6_6rd_dhcp"), "1"))) {
 		char *ptr, *pvalue, *values[4];
 		int i;
 
@@ -399,30 +403,33 @@ bound(void)
 	if ((value = getenv("opt43")) && nvram_get_int("tr_discovery") &&
 			(value = hex2bin(value, &size))) {
 		struct opt_hdr *opt;
-		char buf[256], *url = NULL, *userinfo, *host, *path, *ptr;
+		char buf[256], *url = NULL, *userinfo, *host, *path, *ptr, *user, *pass;
 		if ((opt = opt_get(value, size, 1)) &&
 		    (ptr = strstr(stropt(opt, buf), "://")) && ptr > buf)
-			url = buf;
+			url = trim_r(buf);
 		else if ((ptr = strstr(value, "://")) && ptr > value)
 			url = trim_r(value);
 		if (url && (
 		    strncmp(url, "http://", sizeof("http://") - 1) == 0 ||
 		    strncmp(url, "https://", sizeof("https://") - 1) == 0)) {
-			host = ptr + 3;
+			host = strtok_r(ptr + 3, " ", &userinfo);
 			path = strchrnul(host, '/');
 			if ((ptr = strchr(host, '@')) && ptr < path) {
 				ptr = strsep(&host, "@");
-				userinfo = strdup(ptr);
+				if ((userinfo = user = pass = strdup(ptr)))
+					strsep(&pass, ":");
 				url = memmove(host - (ptr - url), url, ptr - url);
-			} else
+			} else {
+				user = strtok_r(NULL, " ", &userinfo);
+				pass = strtok_r(NULL, " ", &userinfo);
 				userinfo = NULL;
+			}
 			if (host < path) {
-				if ((ptr = userinfo)) {
-					strsep(&ptr, ":");
-					//nvram_set(strcat_r(wanprefix, "tr_username", tmp), userinfo ? : "");
-					//nvram_set(strcat_r(wanprefix, "tr_passwd", tmp), ptr ? : "");
-					nvram_set("tr_username", userinfo ? : "");
-					nvram_set("tr_passwd", ptr ? : "");
+				if (user || pass) {
+					//nvram_set(strcat_r(wanprefix, "tr_username", tmp), user ? : "");
+					//nvram_set(strcat_r(wanprefix, "tr_passwd", tmp), pass ? : "");
+					nvram_set("tr_username", user ? : "");
+					nvram_set("tr_passwd", pass ? : "");
 				}
 				//nvram_set(strcat_r(wanprefix, "tr_acs_url", tmp), url);
 				nvram_set("tr_acs_url", url);
@@ -465,6 +472,21 @@ bound(void)
 		update_wan_state(prefix, WAN_STATE_STOPPED, WAN_STOPPED_REASON_INVALID_IPADDR);
 		return 0;
 	}
+
+#if defined(RTCONFIG_PORT_BASED_VLAN) || defined(RTCONFIG_TAGGED_BASED_VLAN)
+	/* If return value of test_and_get_free_char_network() is 1 and
+	 * we got different IP/netmask from it, the WAN IP/netmask conflicts with known networks.
+	 */
+	snprintf(ip_mask, sizeof(ip_mask), "%s/%s",
+		nvram_pf_safe_get(prefix, "ipaddr"), nvram_pf_safe_get(prefix, "netmask"));
+	if (test_and_get_free_char_network(7, ip_mask, EXCLUDE_NET_ALL_EXCEPT_LAN_VLAN) == 1) {
+		logmessage("dhcp", "%s/%s conflicts with known networks",
+			nvram_pf_safe_get(prefix, "ipaddr"), nvram_pf_safe_get(prefix, "netmask"));
+		update_wan_state(prefix, WAN_STATE_STOPPED, WAN_STOPPED_REASON_INVALID_IPADDR);
+		return 0;
+	}
+#endif
+	restart_coovachilli_if_conflicts(nvram_pf_get(prefix, "ipaddr"), nvram_pf_get(prefix, "netmask"));
 
 	/* Clean nat conntrack for this interface,
 	 * but skip physical VPN subinterface for PPTP/L2TP */
@@ -683,6 +705,12 @@ start_udhcpc(char *wan_ifname, int unit, pid_t *ppid)
 
 	/* Stop zcip to avoid races */
 	stop_zcip(unit);
+
+#ifdef RTCONFIG_INTERNAL_GOBI
+	/* Skip dhcp for IPv6-only USB modem */
+	if (dualwan_unit__usbif(unit) && nvram_get_int("modem_pdp") == 2)
+		return start_zcip(wan_ifname, unit, ppid);
+#endif
 
 	/* Skip dhcp and start zcip for pppoe, if desired */
 	if (nvram_match(strcat_r(prefix, "proto", tmp), "pppoe") &&
@@ -994,25 +1022,56 @@ bound_lan(void)
 	char tmp[100];
 	int size;
 #endif
+#if defined(RTCONFIG_AMAS)
+	int lanchange = 0;
+	const char *ipaddr;
+#endif	
+
 
 	if ((value = getenv("ip"))) {
 		/* restart httpd after lan_ipaddr udpating through lan dhcp client */
 		if (!nvram_match("lan_ipaddr", trim_r(value))) {
 			stop_httpd();
 			start_httpd();
+#if defined(RTCONFIG_AMAS)
+			lanchange = 1;
+#endif				
 		}
 		nvram_set("lan_ipaddr", trim_r(value));
 	}
-	if ((value = getenv("subnet")))
-		nvram_set("lan_netmask", trim_r(value));
-	if ((value = getenv("router")))
+	if ((value = getenv("subnet"))) {
+#if defined(RTCONFIG_AMAS)		
+		if (!nvram_match("lan_netmask", trim_r(value))) {
+			lanchange = 1;
+		}
+#endif			 
+		nvram_set("lan_netmask", trim_r(value));		
+	}
+	if ((value = getenv("router"))) {
+#if defined(RTCONFIG_AMAS)		
+		if (!nvram_match("lan_gateway", trim_r(value))){
+			lanchange = 1;
+		}
+#endif		
 		nvram_set("lan_gateway", trim_r(value));
+	}
 	if ((value = getenv("lease"))) {
+#if defined(RTCONFIG_AMAS)		
+		if (!nvram_match("lan_lease", trim_r(value))){
+			lanchange = 1;
+		}
+#endif				
 		nvram_set("lan_lease", trim_r(value));
 		expires_lan(lan_ifname, atoi(value));
 	}
-	if (nvram_get_int("lan_dnsenable_x") && (value = getenv("dns")))
+	if (nvram_get_int("lan_dnsenable_x") && (value = getenv("dns"))) {
+#if defined(RTCONFIG_AMAS)		
+		if (!nvram_match("lan_dns", trim_r(value))) {
+			lanchange = 1;
+		}
+#endif		
 		nvram_set("lan_dns", trim_r(value));
+	}
 
 #if defined(RTCONFIG_TR069) && defined(RTCONFIG_TR181)
 	nvram_unset("vivso");
@@ -1034,8 +1093,18 @@ bound_lan(void)
 		free(value);
 	}
 #endif
+	
 
 _dprintf("%s: IFUP.\n", __FUNCTION__);
+
+#if defined(RTCONFIG_AMAS)
+	ipaddr = getifaddr(lan_ifname, AF_INET, 0);
+	if (nvram_get_int("re_mode") == 1 && nvram_match("lan_ipaddr", ipaddr) && lanchange == 0 && nvram_get_int("lan_state_t") == LAN_STATE_CONNECTED) {
+		_dprintf("%s: lan ip is not change, don't call lan_up().\n", __FUNCTION__);
+		return 0;
+	}
+#endif	
+
 #ifdef RTCONFIG_WIRELESSREPEATER
 #ifdef RTCONFIG_REALTEK
 	if((repeater_mode() || mediabridge_mode())
@@ -1347,8 +1416,12 @@ start_dhcp6c(void)
 
 	if (service == IPV6_NATIVE_DHCP &&
 	    nvram_get_int(ipv6_nvname("ipv6_dhcp_pd"))) {
+		char hwname[sizeof("wanXXXXXXXXXX_hwaddr")];
+		unsigned long iaid;
+
 		/* Generate IA_PD IAID from the last 7 digits of WAN MAC */
-		unsigned long iaid = ether_atoe(nvram_safe_get("wan0_hwaddr"), duid.ea) ?
+		snprintf(hwname, sizeof(hwname), "wan%d_hwaddr", wan_primary_ifunit_ipv6());
+		iaid = ether_atoe(nvram_safe_get(hwname), duid.ea) ?
 			((unsigned long)(duid.ea[3] & 0x0f) << 16) |
 			((unsigned long)(duid.ea[4]) << 8) |
 			((unsigned long)(duid.ea[5])) : 1;

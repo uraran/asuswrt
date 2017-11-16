@@ -53,6 +53,7 @@ var iptv_modified = 0;
 var voip_modified = 0;
 var iptv_port_settings_orig = '<%nvram_get("iptv_port_settings"); %>' == ""? "12": '<%nvram_get("iptv_port_settings"); %>';
 var lacp_enabled = '<% nvram_get("lacp_enabled"); %>' == 1 ?true: false;
+var orig_mr_enable = '<% nvram_get("mr_enable_x"); %>';
 
 function initial(){
 	show_menu();
@@ -76,19 +77,24 @@ function initial(){
 	
 	document.form.switch_stb_x.value = original_switch_stb_x;
 	disable_udpxy();
-	if(!Rtkwifi_support && !Qcawifi_support)
+	if(!Rtkwifi_support && !Qcawifi_support && !hnd_support && based_modelid != "BLUECAVE"){
 		document.getElementById('enable_eff_multicast_forward').style.display="";
-	
-	if(dualWAN_support)
-		document.getElementById("IPTV_desc_DualWAN").style.display = "";
-	else	
-		document.getElementById("IPTV_desc").style.display = "";
+	}
+
+	if(dualWAN_support) {
+		if(based_modelid == "BRT-AC828")
+			$("#IPTV_desc_DualWAN_BRTAC828").css("display", "");
+		else
+			$("#IPTV_desc_DualWAN").css("display", "");
+	}
+	else
+		$("#IPTV_desc").css("display", "");
 
 	if(based_modelid == "RT-AC87U"){ //MODELDEP: RT-AC87 : Quantenna port
 		document.form.switch_stb_x.remove(5);	//LAN1 & LAN2
 		document.form.switch_stb_x.remove(1);	//LAN1
 	}
-	else if(based_modelid == "GT-AC5300"){ //MODELDEP: GT-AC5300 : TRUNK ports
+	else if(based_modelid == "GT-AC5300" || based_modelid == "GT-AC9600"){ //MODELDEP: GT-AC5300 : TRUNK ports
 		document.getElementById("port_settings").style.display = "";
 		if(iptv_port_settings_orig == "12"){
 			document.getElementById("switch_stb_x").options[3].text = "LAN1"; 	 //P1
@@ -115,63 +121,20 @@ function initial(){
 		document.form.switch_stb_x.remove(1);
 		show_gaming_note(iptv_port_settings_orig);
 	}
-	else if(based_modelid == "RT-AC86U" || based_modelid == "AC2900"){ //MODELDEP: RT-AC86U/AC2900 : TRUNK ports
-		document.getElementById("switch_stb_x").options[3].text = "LAN1"; 	 //P3
-		document.getElementById("switch_stb_x").options[4].text = "LAN2";	 //P2
-		document.getElementById("switch_stb_x").options[6].text = "LAN1 & LAN2"; //P3+P2
-		document.form.switch_stb_x.remove(5);   //LAN3 & LAN4
-		document.form.switch_stb_x.remove(2);   //LAN4
-		document.form.switch_stb_x.remove(1);   //LAN3
-		document.getElementById("voip_port").innerHTML = "LAN2";	//P2
-		document.getElementById("iptv_port").innerHTML = "LAN1";	//P3
-		document.getElementById("voip_port3").innerHTML = "LAN port 2"; //P2
-		document.getElementById("iptv_port4").innerHTML = "LAN port 1"; //P3
-	}
-	if( based_modelid != "RT-AC5300" &&
-		based_modelid != "GT-AC5300" &&
-		based_modelid != "RT-AC3200" &&
-		based_modelid != "RT-AC3100" &&
-		based_modelid != "RT-AC1200G+" &&
-		based_modelid != "RT-AC88U" &&
-		based_modelid != "RT-AC86U" &&
-		based_modelid != "AC2900" &&
-		based_modelid != "RT-AC87U" && 
-		based_modelid != "RT-AC68U" &&
-		based_modelid != "RT-AC68A" &&
-		based_modelid != "4G-AC68U" &&
-		based_modelid != "RT-AC66U" &&
-		based_modelid != "RT-AC56U" &&
-		based_modelid != "RT-AC51U" &&
-		based_modelid != "RT-N66U" &&
-		based_modelid != "RT-N18U"
-	){
+	if( !meoVoda_support ){
 		document.getElementById('meoOption').outerHTML = "";
 		document.getElementById('vodafoneOption').outerHTML = "";
 	}
+
+	if(hnd_support || based_modelid == "BLUECAVE"){
+		document.getElementById('meoOption').outerHTML = "";
+	}
 	
-	if( based_modelid != "RT-AC5300" &&
-		based_modelid != "GT-AC5300" &&
-		based_modelid != "RT-AC3200" &&
-		based_modelid != "RT-AC3100" &&
-		based_modelid != "RT-AC1200G+" &&
-		based_modelid != "RT-AC88U" &&
-		based_modelid != "RT-AC86U" &&
-		based_modelid != "AC2900" &&
-		based_modelid != "RT-AC87U" &&
-		based_modelid != "RT-AC68U" &&
-		based_modelid != "RT-AC68A" &&
-		based_modelid != "4G-AC68U" &&
-		based_modelid != "RT-AC66U" &&
-		based_modelid != "RT-AC56U" &&
-		based_modelid != "RT-AC56S" &&
-		based_modelid != "RT-AC51U" &&
-		based_modelid != "RT-N66U" &&
-		based_modelid != "RT-N18U"
-        ){
+	if( !movistarTriple_support ){
 		document.getElementById('movistarOption').outerHTML = "";
 	}
-        if(!nz_isp_support)
-                document.getElementById('sfOption').outerHTML = "";
+	if(!nz_isp_support)
+		document.getElementById('sfOption').outerHTML = "";
 }
 
 function load_ISP_profile(){
@@ -308,12 +271,17 @@ function ISP_Profile_Selection(isp){
 	document.getElementById("wan_internet_x").style.display = ISP_setting[3];
 	document.getElementById("wan_iptv_port4_x").style.display = ISP_setting[4];
 	document.getElementById("wan_voip_port3_x").style.display = ISP_setting[5];
-	document.form.switch_stb_x.value = ISP_setting[6];
-	document.getElementById("mr_enable_field").style.display = ISP_setting[7];
-	if(!Rtkwifi_support && !Qcawifi_support)
-		document.getElementById("enable_eff_multicast_forward").style.display = ISP_setting[8];
+	if(isp == original_switch_wantag)
+		document.form.switch_stb_x.value = original_switch_stb_x;
 	else
+		document.form.switch_stb_x.value = ISP_setting[6];
+	document.getElementById("mr_enable_field").style.display = ISP_setting[7];
+	if(!Rtkwifi_support && !Qcawifi_support && !hnd_support && based_modelid != "BLUECAVE"){
+		document.getElementById("enable_eff_multicast_forward").style.display = ISP_setting[8];
+	}
+	else{
 		document.getElementById("enable_eff_multicast_forward").style.display = "none";
+	}
 
 	document.getElementById("iptv_settings_btn").style.display = ISP_setting[9];
 	document.getElementById("voip_settings_btn").style.display = ISP_setting[10];
@@ -358,6 +326,19 @@ function ISP_Profile_Selection(isp){
 	else{
 		document.getElementById("iptv_configure_status").style.display = "none";
 		document.getElementById("voip_configure_status").style.display = "none";
+	}
+
+	if(hnd_support || based_modelid == "BLUECAVE"){
+		if(document.form.switch_stb_x.value != "0"){
+			document.getElementById("mr_enable_x").style.display = "none";
+			document.getElementById("mr_disable").style.display = "";
+			document.form.mr_enable_x.value = "0";
+		}
+		else{
+			document.getElementById("mr_enable_x").style.display = "";
+			document.getElementById("mr_disable").style.display = "none";
+			document.form.mr_enable_x.value = orig_mr_enable;
+		}
 	}
 }
 
@@ -1029,6 +1010,23 @@ function show_gaming_note(val){
 		document.getElementById("gaming_note").innerHTML = "Link aggregation is configured in LAN 5 and LAN6. If you would like to use link aggregation, please choose LAN 1/ LAN 2 for your IPTV or VoIP port.";//untranslated
 	document.getElementById("gaming_note_div").style.display = "";
 }
+
+function change_mr_enable(switch_stb){
+	if(hnd_support || based_modelid == "BLUECAVE"){
+		if(switch_stb != "0"){
+			document.getElementById("mr_enable_x").style.display = "none";
+			document.getElementById("mr_disable").style.display = "";
+			document.form.mr_enable_x.value = "0";
+		}
+		else{
+			document.getElementById("mr_enable_x").style.display = "";
+			document.getElementById("mr_disable").style.display = "none";
+			document.form.mr_enable_x.value = orig_mr_enable;
+		}
+	}
+	else
+		document.getElementById("mr_disable").style.display = "none";
+}
 </script>
 </head>
 
@@ -1333,13 +1331,15 @@ function show_gaming_note(val){
   <table width="760px" border="0" cellpadding="5" cellspacing="0" class="FormTitle" id="FormTitle">
 	<tbody>
 	<tr>
-		  <td bgcolor="#4D595D" valign="top"  >
-		  <div>&nbsp;</div>
-		  <div class="formfonttitle"><#menu5_2#> - IPTV</div>
-      <div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
-      <div id="IPTV_desc" class="formfontdesc" style="display:none;"><#LANHostConfig_displayIPTV_sectiondesc#></div>
-      <div id="IPTV_desc_DualWAN" class="formfontdesc" style="display:none;"><#LANHostConfig_displayIPTV_sectiondesc2#></div>
-	  
+		<td bgcolor="#4D595D" valign="top"  >
+			<div>&nbsp;</div>
+			<div class="formfonttitle"><#menu5_2#> - IPTV</div>
+			<div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
+			<div id="IPTV_desc" class="formfontdesc" style="display:none;"><#LANHostConfig_displayIPTV_sectiondesc#></div>
+			<div id="IPTV_desc_DualWAN" class="formfontdesc" style="display:none;"><#LANHostConfig_displayIPTV_sectiondesc2#></div>
+			<div id="IPTV_desc_DualWAN_BRTAC828" class="formfontdesc" style="display:none;">
+				You must select "Ethernet LAN" as the primary WAN to use IPTV function. Please go to <a href="/Advanced_WANPort_Content.asp" style="text-decoration: underline;">WAN - Dual WAN</a> to confirm that Ethernet LAN port is assigned to primary WAN.<!--untranslated-->
+			</div>
 	  
 	  <!-- IPTV & VoIP Setting -->
 	  
@@ -1388,7 +1388,7 @@ function show_gaming_note(val){
 		<tr id="wan_stb_x">
 		<th width="30%"><#Layer3Forwarding_x_STB_itemname#></th>
 		<td align="left">
-		    <select id="switch_stb_x" name="switch_stb_x" class="input_option">
+		    <select id="switch_stb_x" name="switch_stb_x" class="input_option" onchange="change_mr_enable(this.value);">
 			<option value="0" <% nvram_match( "switch_stb_x", "0", "selected"); %>><#wl_securitylevel_0#></option>
 			<option value="1" <% nvram_match( "switch_stb_x", "1", "selected"); %>>LAN1</option>
 			<option value="2" <% nvram_match( "switch_stb_x", "2", "selected"); %>>LAN2</option>
@@ -1515,10 +1515,14 @@ function show_gaming_note(val){
 			<tr id="mr_enable_field">
 				<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(5,11);"><#RouterConfig_GWMulticastEnable_itemname#> (IGMP Proxy)</a></th>
 				<td>
-          <select name="mr_enable_x" class="input_option">
-            <option value="0" <% nvram_match("mr_enable_x", "0","selected"); %> ><#WLANConfig11b_WirelessCtrl_buttonname#></option>
-           	<option value="1" <% nvram_match("mr_enable_x", "1","selected"); %> ><#WLANConfig11b_WirelessCtrl_button1name#></option>
-          </select>
+					<select id="mr_enable_x" name="mr_enable_x" class="input_option">
+						<option value="0" <% nvram_match("mr_enable_x", "0","selected"); %> ><#WLANConfig11b_WirelessCtrl_buttonname#></option>
+						<option value="1" <% nvram_match("mr_enable_x", "1","selected"); %> ><#WLANConfig11b_WirelessCtrl_button1name#></option>
+					</select>
+					<div id="mr_disable" style="display:none;">
+						<span style="color:#FFF;"><#WLANConfig11b_WirelessCtrl_buttonname#></span>
+						<span style="margin-left: 5px;">(Due to hardware limitation, IGMP proxy can’t co-exist with IPTV function.)</span><!--untranslated-->
+					</div>
 				</td>
 			</tr>
 

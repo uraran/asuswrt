@@ -3,7 +3,7 @@
 */
 
 #include <rc.h>
-#include <bwdpi.h>
+#include <bwdpi_common.h>
 
 static int count = 0; // real count
 

@@ -56,7 +56,7 @@ var enable_samba = '<% nvram_get("enable_samba"); %>';
 
 var max_shift = "";	/*MODELDEP (include dict #PPTP_desc2# #vpn_max_clients# #vpn_maximum_clients#) : 
 				RT-AC5300/GT-AC5300/RT-AC86U/AC2900/RT-AC3200/RT-AC3100/RT-AC88U/RT-AC87U/RT-AC68U/RT-AC66U/RT-AC56U/RT-N66U/RT-N18U */
-if(based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || based_modelid == "RT-AC3200" || based_modelid == "RT-AC3100" ||
+if(based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || based_modelid == "GT-AC9600" || based_modelid == "RT-AC3200" || based_modelid == "RT-AC3100" ||
 		based_modelid == "RT-AC88U" || based_modelid == "RT-AC86U" || based_modelid == "AC2900" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC68U" ||
 		based_modelid == "RT-AC66U" || based_modelid == "RT-AC56U" ||
 		based_modelid == "RT-N66U" || based_modelid == "RT-N18U"){
@@ -169,16 +169,19 @@ function initial(){
 	if(!openvpnd_support) {
 		delete vpn_server_array.OpenVPN;
 	}
-	if(!ipsec_support) {
+	if(!ipsec_srv_support) {
 		delete vpn_server_array.IPSEC;
 	}
 	$('#divSwitchMenu').html(gen_switch_menu(vpn_server_array, "PPTP"));
+
+	//set FAQ URL
+	set_FAQ_link("faq_port_forwarding", "1033906", "privateIP");//this id is include in string : #vpn_privateIP_hint#
 }
 
 var MAX_RETRY_NUM = 5;
 var external_ip_retry_cnt = MAX_RETRY_NUM;
 function show_warning_message(){
-	if(realip_support && wans_mode != "lb"){
+	if(realip_support && (based_modelid == "BRT-AC828" || wans_mode != "lb")){
 		if(realip_state != "2" && external_ip_retry_cnt > 0){
 			if( external_ip_retry_cnt == MAX_RETRY_NUM )
 				get_real_ip();
@@ -282,12 +285,7 @@ function applyRule() {
 			for(var i = 0; i < rule_num; i += 1) {
 				tmp_value += "<"		
 				for(var j = 1; j < item_num - 2; j += 1) {
-					if(document.getElementById("pptpd_clientlist_table").rows[i].cells[j].innerHTML.lastIndexOf("...") < 0) {
-						tmp_value += document.getElementById("pptpd_clientlist_table").rows[i].cells[j].innerHTML;
-					}
-					else {
-						tmp_value += document.getElementById("pptpd_clientlist_table").rows[i].cells[j].title;
-					}					
+					tmp_value += document.getElementById("pptpd_clientlist_table").rows[i].cells[j].title;
 					if(j != item_num - 3)
 						tmp_value += ">";
 				}
@@ -571,12 +569,8 @@ function showpptpd_clientlist(){
 						code +='<td width="30%" title="'+pptpd_clientlist_col[0]+'">'+ pptpd_clientlist_col[0] +'</td>';
 				}
 				else if(j == 1){
-					if(pptpd_clientlist_col[1].length >28){
-						overlib_str1[i] += pptpd_clientlist_col[1];
-						pptpd_clientlist_col[1]=pptpd_clientlist_col[1].substring(0, 26)+"...";
-						code +='<td width="30%" title="'+overlib_str1[i]+'">'+ pptpd_clientlist_col[1] +'</td>';
-					}else
-						code +='<td width="30%">'+ pptpd_clientlist_col[1] +'</td>';
+					overlib_str1[i] += pptpd_clientlist_col[1];
+					code +='<td width="30%" title="'+overlib_str1[i]+'" style="text-align:center;">-</td>';
 				} 
 			}
 			
@@ -938,7 +932,7 @@ function update_pptp_client_status(){
 										<div class="formfontdesc"><#PPTP_desc#></div>
 										<div id="wan_ctrl" class="formfontdesc"></div>
 										<div id="dualwan_ctrl" style="display:none;" class="formfontdesc"></div>
-										<div class="formfontdesc" style="margin-top:-10px;font-weight: bolder;"><#PPTP_desc3#></div>
+										<div class="formfontdesc" style="margin-top:-10px;"><#PPTP_desc3#></div>
 										<div class="formfontdesc" style="margin-top:-10px;">(7) <#NSlookup_help#></div>
 										<div class="formfontdesc" style="margin:-10px 0px 0px -15px;">
 											<ul>
@@ -989,7 +983,7 @@ function update_pptp_client_status(){
 											<td>
 												<input type="radio" value="1" name="pptpd_broadcast_option" onClick="setBroadcast(this);"/><#checkbox_Yes#>
 												<input type="radio" value="0" name="pptpd_broadcast_option" onClick="setBroadcast(this);"/><#checkbox_No#>
-												<span id="pptpd_broadcast_hint" style="font-family: Lucida Console;color: #FFCC00;display: none;">When Network Place enabled, this must be enabled</span>
+												<span id="pptpd_broadcast_hint" style="font-family: Lucida Console;color: #FFCC00;display: none;"><#PPTP_broadcast_hint#></span>
 											</td>
 										</tr>
 										<tr>

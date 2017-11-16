@@ -10,15 +10,13 @@ CFLAGS += -I$(TOP)/shared #Just For rtconfig.h , do not include share library.
 CFLAGS += -I$(TOP)/json-c
 CFLAGS += -DASUSWRT_SDK
 
-ifeq ($(or $(CONFIG_LINUX3_14),$(HND_ROUTER)),y)
+# NOTE : Kernel 3.x upper will show one pthread (even if you create more than one)
+ifeq ($(CONFIG_KERNEL_PTHREAD_ONE),y)
 CFLAGS += -DCONFIG_LINUX3X_OR_4X
-endif
-ifeq ($(HND_ROUTER),y)
-CFLAGS += -DNON_P_THREAD
 endif
 
 LDFLAGS = -L$(TOP)/nt_center/lib/ -lnt
-LDFLAGS += -L$(TOP)/sqlite/.libs -lsqlite3
+LDFLAGS += -L$(TOP)/sqlite/.libs -lsqlite3 -lm
 LDFLAGS += -L$(TOP)/json-c/.libs -ljson-c
 
 LIBS = -lpthread -lgcc_s
@@ -38,14 +36,14 @@ endif
 MDIRS = lib actMail
 
 ifeq ($(wildcard $(SRCBASE)/router/nt_center/*.c),)
-all: 
-	-cp -f prebuilt/Notify_Event2NC Notify_Event2NC
-	-cp -f prebuilt/nt_center nt_center
-	-cp -f actMail/prebuilt/nt_actMail actMail
-	-cp -f prebuilt/nt_monitor nt_monitor
-	-cp -f lib/prebuilt/libnt.so lib
-	-cp -f lib/prebuilt/nt_db lib
-	-cp -f lib/prebuilt/*.h lib
+all:
+	-cp -f prebuild/Notify_Event2NC Notify_Event2NC
+	-cp -f prebuild/nt_center nt_center
+	-cp -f actMail/prebuild/nt_actMail actMail
+	-cp -f prebuild/nt_monitor nt_monitor
+	-cp -f lib/prebuild/libnt.so lib
+	-cp -f lib/prebuild/nt_db lib
+	-cp -f lib/prebuild/*.h lib
 
 else
 all: ntdir nt_center Notify_Event2NC  nt_monitor

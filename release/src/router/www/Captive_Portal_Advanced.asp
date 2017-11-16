@@ -8,7 +8,7 @@
 <meta HTTP-EQUIV="Expires" CONTENT="-1">
 <link rel="shortcut icon" href="images/favicon.png">
 <link rel="icon" href="images/favicon.png">
-<title><#Web_Title#> - Captive Portal<!--untranslated--></title>
+<title><#Web_Title#> - <#Captive_Portal#></title>
 <link rel="stylesheet" type="text/css" href="index_style.css"> 
 <link rel="stylesheet" type="text/css" href="form_style.css">
 <link rel="stylesheet" type="text/css" href="other.css">
@@ -261,7 +261,7 @@ function set_tab_and_action_btn() {
 function edit_cancel(_flag) {
 	var _confirm_flag = true;
 	if(_flag) {
-		_confirm_flag = confirm("The setting will not be saved, are you sure to closed?");/*untranslated*/
+		_confirm_flag = confirm("<#Captive_Portal_Profile_Exit#>");
 	}
 
 	if(_confirm_flag) {
@@ -270,7 +270,7 @@ function edit_cancel(_flag) {
 	}
 }
 function preview(event) {
-	window.open('Captive_Portal_Advanced_Preview.asp', 'Splash Page', 'toolbar=no,scrollbars=no,resizable=yes,location=no,menubar=no,width=476,height=714');
+	window.open('Captive_Portal_Advanced_Preview.asp', '<#FreeWiFi_title#>', 'toolbar=no,scrollbars=no,resizable=yes,location=no,menubar=no,width=476,height=714');
 	stop_propagation(event);
 }
 function help_close() {
@@ -326,60 +326,60 @@ function toolbar_unit_help(event) {
 
 	code += "<div id='help_step_1' class='help_step'>";
 	code += "<div class='help_frame step1'>";
-	code += "<div id='toolbar_template' title='Template' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_template' style='cursor:default;'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Template</div>";/*untranslated*/
+	code += "<div id='toolbar_template' title='<#Captive_Portal_Template#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_template' style='cursor:default;'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#Captive_Portal_Template#></div>";
 	code += "</div>";
 	code += "</div>";
 	code += "<div class='help_desc step1'>";
-	code += "<div class='help_desc_title'>1. Select a tempalte</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>You can select the pre-configured templates, or select Custom to edit by yourself.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>1. <#FreeWiFi_Temp_Select#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Select_desc#></div>";
 	code += "</div>";
 	code += "</div>";
 	code += "<div id='help_step_2' class='help_step' style='display:none;'>";
 	code += "<div class='help_frame step2'>";
-	code += "<div class='help_desc_title'>2. Web layout zone</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>After the template is chose, you can re-locate and resize the web elements at the web layout zone.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>2. <#FreeWiFi_Temp_WebLayout#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_WebLayout_desc#></div>";
 	code += "</div>";
 	code += "</div>";
 
 	code += "<div id='help_step_3' class='help_step' style='display:none;'>";
 	code += "<div class='help_frame step3'>";
-	code += "<div id='toolbar_unit_image' title='<#CTL_add#> Image' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_image' style='cursor:default;'></div>";/*untranslated*/
-	code += "<div id='toolbar_unit_text' title='<#CTL_add#> Text' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_text' style='cursor:default;'></div>";/*untranslated*/
+	code += "<div id='toolbar_unit_image' title='<#CTL_add#> <#Captive_Portal_Image#>' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_image' style='cursor:default;'></div>";
+	code += "<div id='toolbar_unit_text' title='<#CTL_add#> Text' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_text' style='cursor:default;'></div>";
 	code += "<div id='toolbar_unit_account' title='<#CTL_add#> <#PPPConnection_Authentication_itemname#>' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_account' style='cursor:default;'></div>";
-	code += "<div id='toolbar_unit_eula' title='<#CTL_add#> Eula' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_eula' style='cursor:default;'></div>";/*untranslated*/
+	code += "<div id='toolbar_unit_eula' title='<#CTL_add#> Eula' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_eula' style='cursor:default;'></div>";
 	code += "</div>";
 	code += "<div class='help_desc step3'>";
-	code += "<div class='help_desc_title'>3. Add new web element</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>Above web layout zone, there are 4 web elements allows you to add image, text, authentication blank and terms of services.</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>For the authentication blank and terms of services is unique element, only allow to add once per splash page.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>3. <#FreeWiFi_Temp_Add#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Add_desc1#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Add_desc2#></div>";
 	code += "</div>";
 	code += "</div>";
 
 	code += "<div id='help_step_4' class='help_step' style='display:none;'>";
 	code += "<div class='help_frame step4'>";
-	code += "<div id='toolbar_background'  title='Background' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_background' style='cursor:default;'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Background</div>";/*untranslated*/
+	code += "<div id='toolbar_background'  title='<#btn_Background#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_background' style='cursor:default;'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#btn_Background#></div>";
 	code += "</div>";
-	code += "<div id='toolbar_editor' title='Editor' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_editor' style='cursor:default;'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Editor</div>";/*untranslated*/
+	code += "<div id='toolbar_editor' title='<#Captive_Portal_Editor#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_editor' style='cursor:default;'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#Captive_Portal_Editor#></div>";
 	code += "</div>";
 	code += "</div>";
 	code += "<div class='help_desc step4'>";
-	code += "<div class='help_desc_title'>4. Element editing zone</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>The editing zone allows you to edit the content of each web element.</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>Click the element on the web layout zone , and staring costume your splash page.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>4. <#FreeWiFi_Temp_Edit#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Edit_desc1#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Edit_desc2#></div>";
 	code += "</div>";
 	code += "</div>";
 
 	code += "<div id='help_step_5' class='help_step' style='display:none;'>";
 	code += "<div class='help_frame step5'>";
-	code += "<div title='Preview' class='splash_page_toolbar_unit_preview' style='cursor:default;'></div>";/*untranslated*/
+	code += "<div title='<#btn_Preview#>' class='splash_page_toolbar_unit_preview' style='cursor:default;'></div>";
 	code += "</div>";
 	code += "<div class='help_desc step5'>";
-	code += "<div class='help_desc_title'>5. Preview your masterpiece</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>To make sure each editing is correct to display, you can click Preview button to check the result.</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>After confirm your masterpiece, click Next button to finish the account authentication setting.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>5. <#FreeWiFi_Temp_Preview#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Preview_desc1#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Preview_desc2#></div>";
 	code += "</div>";
 	code += "</div>";
 
@@ -388,8 +388,8 @@ function toolbar_unit_help(event) {
 	code += "<input class='button_gen' type='button' style='cursor:default;' value='<#CTL_Reset_OOB#>' disabled/>";
 	code += "</div>";
 	code += "<div class='help_desc step6'>";
-	code += "<div class='help_desc_title'>6. Reset your actions</div>";/*untranslated*/
-	code += "<div class='help_desc_text'>The reset button allow you to reset the web costume to the default or to the last saved version, if you are editing a saved profile.</div>";/*untranslated*/
+	code += "<div class='help_desc_title'>6. <#FreeWiFi_Temp_Reset#></div>";
+	code += "<div class='help_desc_text'><#FreeWiFi_Temp_Reset_desc#></div>";
 	code += "</div>";
 	code += "</div>";
 
@@ -410,8 +410,8 @@ function toolbar_unit_help(event) {
 function gen_tab_menu() {
 	var code = "";
 	code += "<div style='height:50px;'>"
-	code += "<div id='captive_portal_adv_step_1' onclick='switch_tab(1)'>1. Configuration</div>";
-	code += "<div id='captive_portal_adv_step_2' onclick='switch_tab(2)'>2. Splash Page</div>";/*untranslated*/
+	code += "<div id='captive_portal_adv_step_1' onclick='switch_tab(1)'>1. <#Configuration#></div>";
+	code += "<div id='captive_portal_adv_step_2' onclick='switch_tab(2)'>2. <#FreeWiFi_title#></div>";
 	code += "<div id='captive_portal_adv_step_3' onclick='switch_tab(3)'>3. <#PPPConnection_UserName_sectionname#></div>";
 	code += "</div>";
 	return code;
@@ -490,7 +490,7 @@ function gen_basic_settings() {
 	code += "</tr>";
 	code += "</thead>";
 	code += "<tr>";
-	code += "<th>Brand Name</th>";/*untranslated*/
+	code += "<th><#FreeWiFi_BrandName#></th>";
 	code += "<td>";
 	code += "<input style='margin-left:0px;' type='text' name='cpa_profile_name' value='Brand Name' maxlength='32' class='input_25_table' autocomplete='off' autocorrect='off' autocapitalize='off' onkeyup='auto_fill_wl_name();'>";
 	code += "</td>";
@@ -501,7 +501,7 @@ function gen_basic_settings() {
 		var _default_wl_name = ["Brand Name", "Brand Name_5G", "Brand Name_5G-2"];
 		var code = "";
 		code += "<tr>";
-		code += "<th>" + wl_nband_title[_unit] + " <#QIS_finish_wireless_item1#></th>";/*untranslated*/
+		code += "<th>" + wl_nband_title[_unit] + " <#QIS_finish_wireless_item1#></th>";
 		code += "<td>";
 		code += "<input type='checkbox' name='cb_wl_" + _unit + "' id='cb_wl_" + _unit + "' onclick='change_wl_input_status(" + _unit + ");' checked>";
 		code += "<input name='wl_" + _unit + "' class='input_25_table' value='" + _default_wl_name[_unit] + "' type='text' maxlength='32' autocorrect='off' autocapitalize='off'>";
@@ -527,12 +527,12 @@ function gen_basic_settings() {
 	code += "<table width='100%' border='1' align='center' cellpadding='4' cellspacing='0' bordercolor='#6b8fa3' class='FormTable' style='margin-top:15px;'>";
 	code += "<thead>";
 	code += "<tr>";
-	code += "<td colspan='2'>Access Policy</td>";/*untranslated*/
+	code += "<td colspan='2'><#FreeWiFi_AccessPolicy#></td>";
 	code += "</tr>";
 	code += "</thead>";
 
 	code += "<tr>";
-	code += "<th><a class='hintstyle' href='javascript:void(0);' onClick='openHint(31, 2);'>Idle Timeout</a></th>";/*untranslated*/
+	code += "<th><a class='hintstyle' href='javascript:void(0);' onClick='openHint(31, 2);'><#FreeWiFi_Idle#></a></th>";
 	code += "<td>";
 	code += "<input type='radio' name='cpa_away_timeout' id='cpa_away_timeout_time'>";
 	code += "<input type='text' name='cpa_away_set' value='1' maxlength='3' class='input_6_table' onKeyPress='return validator.isNumber(this,event)' autocomplete='off' autocorrect='off' autocapitalize='off'>";
@@ -545,7 +545,7 @@ function gen_basic_settings() {
 	code += "</tr>";
 
 	code += "<tr>";
-	code += "<th><a class='hintstyle' href='javascript:void(0);' onClick='openHint(31, 3);'>Connection Timeout</a></th>";/*untranslated*/
+	code += "<th><a class='hintstyle' href='javascript:void(0);' onClick='openHint(31, 3);'><#FreeWiFi_timeout#></a></th>";
 	code += "<td>";
 	code += "<input type='radio' name='cpa_session_timeout' id='cpa_session_timeout_time'>";
 	code += "<input type='text' name='cpa_session_set' value='1' maxlength='3' class='input_6_table' onKeyPress='return validator.isNumber(this,event)' autocomplete='off' autocorrect='off' autocapitalize='off'>";
@@ -559,10 +559,30 @@ function gen_basic_settings() {
 	code += "</tr>";
 
 	code += "<tr>";
-	code += "<th>Landing Page (Redirect to your website)</th>";/*untranslated*/
+	code += "<th><#Captive_Portal_DL_Speed#></th>";
+	code += "<td>";
+	code += "<input type='radio' name='cpa_bw_dl' id='cpa_bw_dl_limited'>";
+	code += "<input name='cpa_bw_dl_set' class='input_15_table' value='1' type='text' maxlength='12' autocorrect='off' autocapitalize='off' onKeyPress='return validator.bandwidth_code(this, event);'>";
+	code += "&nbsp;&nbsp;Mb/s";
+	code += "&nbsp;&nbsp;<input type='radio' name='cpa_bw_dl' id='cpa_bw_dl_unlimited' checked><label for='cpa_bw_dl_unlimited'><#Limitless#></label>";
+	code += "</td>";
+	code += "</tr>";
+
+	code += "<tr>";
+	code += "<th><#Captive_Portal_UL_Speed#></th>";
+	code += "<td>";
+	code += "<input type='radio' name='cpa_bw_ul' id='cpa_bw_ul_limited'>";
+	code += "<input name='cpa_bw_ul_set' class='input_15_table' value='1' type='text' maxlength='12' autocorrect='off' autocapitalize='off' onKeyPress='return validator.bandwidth_code(this, event);'>";
+	code += "&nbsp;&nbsp;Mb/s";
+	code += "&nbsp;&nbsp;<input type='radio' name='cpa_bw_ul' id='cpa_bw_ul_unlimited' checked><label for='cpa_bw_ul_unlimited'><#Limitless#></label>";
+	code += "</td>";
+	code += "</tr>";
+
+	code += "<tr>";
+	code += "<th><#FreeWiFi_LandingPage#> (<#FreeWiFi_RedirectPage#>)</th>";
 	code += "<td>";
 	code += "<input style='margin-left:0px;' type='text' name='cpa_landing_page' value='' class='input_25_table' maxlength='64' autocomplete='off' autocorrect='off' autocapitalize='off'>";
-	code += "<span style='margin-left:5px;'>ex. http or https ://www.asus.com</span>";
+	code += "<span style='margin-left:5px;'>ex. http <#Captive_Portal_OR#> https ://www.asus.com</span>";
 	code += "</td>";
 	code += "</tr>";
 
@@ -898,32 +918,32 @@ function edit_component_eula() {
 	var code = "";
 	$("#splash_page_container_edit").html(code);
 
-	code += "<div class='edit_component_item_title'>Text Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Text_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_eula_label_color_set' id='edit_eula_label_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='C9C9C9' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
 	code += "<div class='captive_portal_adv_line'></div>";
 
-	code += "<div class='edit_component_item_title'>Service Terms <span>(* This will be a dialog)</span></div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Terms_Service#> <span>(* <#Captive_Portal_Terms_Dialog#>)</span></div>";
 	code += "<div class='edit_component_item_content'>";
-	code += "<div class='edit_component_item_title' style='margin-top:5px;'>Terms of service title</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title' style='margin-top:5px;'><#Captive_Portal_Terms_Service#> title</div>";/*untranslated*/
 	code += "<input name='edit_eula_terms_service_title' class='input_30_table auto_add_onblur' value='Welcome to Captive Portal Wi-Fi!' type='text' maxlength='128' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
 	code += "<div class='edit_component_item_content' style='margin-top:5px;'>";
-	code += "<div class='edit_component_item_title' style='margin-top:5px;'>Terms of service</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title' style='margin-top:5px;'><#Terms_of_Service#></div>";
 	code += "<textarea name='edit_eula_terms_service' id='edit_eula_terms_service' class='edit_eula_textarea auto_add_onblur' rows='8' cols='40' maxlength='2048'>";
 	code += "By using Captive Portal Wi-Fi internet service, you hereby expressly acknowledge and agree that there are significant security, privacy and confidentiality risks inherent in accessing or transmitting information through the internet, whether the connection is facilitated through wired or wireless technology. Security issues include, without limitation, interception of transmissions, loss of data, and the introduction or viruses and other programs that can corrupt or damage your computer.\n\nAccordingly, you agree that the owner and/or provider of this network is NOT liable for any interception or transmissions, computer worms or viruses, loss of data, file corruption, hacking or damage to your computer or other devices that result from the transmission or download of information or materials through the internet service provided.\n\nUse of the wireless network is subject to the general restrictions outlined below. If abnormal, illegal, or unauthorized behavior is detected, including heavy consumption of bandwidth, the network provider reserves the right to permanently disconnect the offending device from the wireless network.";
 	code += "</textarea>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Text Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Text_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_eula_terms_color_set' id='edit_eula_terms_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='E8E8E8' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>This Dialog color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Dialog_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_eula_terms_background_color_set' id='edit_eula_terms_background_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='232E32' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1020,12 +1040,12 @@ function edit_component_account() {
 	$("#splash_page_container_edit").html(code);
 
 	code += "<div id='edit_account_accpwd_bg'>";
-	code += "<div class='edit_component_item_title'>Username Hint Text</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Username_Hint#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_account_username_label' class='input_30_table auto_add_onblur' value='Enter Account' type='text' maxlength='32' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Password Hint Text</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Password_Hint#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_account_password_label' class='input_30_table auto_add_onblur' value='Enter Password' type='text' maxlength='32' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1033,12 +1053,12 @@ function edit_component_account() {
 
 	code += "<div class='captive_portal_adv_line'></div>";
 
-	code += "<div class='edit_component_item_title'>Input Text Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Input_Text_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_account_label_color_set' id='edit_account_label_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='000000' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Input box Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Input_Box_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_account_box_color_set' id='edit_account_box_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='FFFFFF' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1135,17 +1155,17 @@ function edit_component_button() {
 	var code = "";
 	$("#splash_page_container_edit").html(code);
 
-	code += "<div class='edit_component_item_title'>Button Label</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Button_Label#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_button_label' class='input_30_table auto_add_onblur' value='Connect' type='text' maxlength='16' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Button Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Button_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_button_color_set' id='edit_button_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='00b0ff' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Button Text Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Button_Text_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_button_label_color_set' id='edit_button_label_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='ffffff' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1154,12 +1174,12 @@ function edit_component_button() {
 
 	code += "<div class='captive_portal_adv_line'></div>";
 
-	code += "<div class='edit_component_item_title'>Work In Progress Text</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Work_Text#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_button_work_progress' class='input_30_table auto_add_onblur' value='Connecting, please be patient.' type='text' maxlength='128' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'>Denied Text</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Denied_Text#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_button_denied' class='input_30_table auto_add_onblur' value='Error: Invalid credentials. please contact your system administrator' type='text' maxlength='128' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1287,10 +1307,25 @@ function edit_update_content_image(_component_id) {
 	$("input[name=edit_image_walled_garden]").val($.trim($("input[name=edit_image_walled_garden]").val()));
 	var image_walled_garden = $('input[name="edit_image_walled_garden"]').val();
 	if(image_walled_garden != "") {
-		if(!isValidDomin(image_walled_garden)) {
-			add_hint_msg($('input[name="edit_image_walled_garden"]'), "" + image_walled_garden + " is invalid Domain Name");/*untranslated*/
-			$("input[name=edit_image_walled_garden]").focus();
-			return;
+		var validIPFlag = false;
+		if(image_walled_garden.split(".").length == 4) {
+			var part = image_walled_garden.split(".");
+			if(!isNaN(part[0]) && !isNaN(part[1]) && !isNaN(part[2]) && !isNaN(part[3]))
+				validIPFlag = true;
+		}
+		if(validIPFlag) {
+			if(!validator.ipv4_addr(image_walled_garden)) {
+				add_hint_msg($('input[name="edit_image_walled_garden"]'), "" + image_walled_garden + " <#JS_validip#>");
+				$("input[name=edit_image_walled_garden]").focus();
+				return;
+			}
+		}
+		else {
+			if(!validator.domainName_flag(image_walled_garden)) {
+				add_hint_msg($('input[name="edit_image_walled_garden"]'), "" + image_walled_garden + " is invalid Domain Name");/*untranslated*/
+				$("input[name=edit_image_walled_garden]").focus();
+				return;
+			}
 		}
 	}
 
@@ -1415,11 +1450,11 @@ function edit_component_background() {
 	code += "<div id='edit_background_image_bg' class='edit_background_bg'>";
 	if(isSupportFileReader() && isSupportCanvas()) {
 		code += "<div id='edit_drag_drop_bg' class='edit_drag_drop_bg' onclick='edit_upload_file_trigger(\"background\");'>";
-		code += "<div class='edit_drag_drop_text' >Drag the Image here to use<br>or<br>Click here to select Image</div>";/*untranslated*/
+		code += "<div class='edit_drag_drop_text'><#Captive_Portal_Upload_Image#><br><#Captive_Portal_OR#><br><#Captive_Portal_Click_Image#></div>";
 		code += "</div>";
-		code += "<div class='edit_drag_drop_hint'>Image Size: < 10MB</div>";/*untranslated*/
-		code += "<div class='edit_drag_drop_hint'>Recommend Types: jpg, png</div>";/*untranslated*/
-		code += "<div class='edit_drag_drop_hint'>Recommend Resolution: 1152 x 864 px or above</div>";/*untranslated*/
+		code += "<div class='edit_drag_drop_hint'><#FreeWiFi_ImageSize#>: < 10MB</div>";
+		code += "<div class='edit_drag_drop_hint'><#FreeWiFi_RecommendType#>: jpg, png</div>";
+		code += "<div class='edit_drag_drop_hint'><#FreeWiFi_RecommendResolution#>: 1152 x 864 px <#Captive_Portal_OR#> above</div>";
 	}
 	else {
 		code += "<div id='edit_drag_drop_bg' class='edit_drag_drop_bg'>";
@@ -1494,8 +1529,8 @@ function edit_component_image(_idx) {
 	$("#splash_page_container_edit").html(code);
 
 	code += "<div class='edit_component_item_title'>";
-	code += "<input type='radio' name='edit_image_type' id='edit_image_image' value='image' onclick='showHideImageType();' checked><label for='edit_image_image'>Image</label>";/*untranslated*/
-	code += "<input type='radio' name='edit_image_type' id='edit_image_color' value='color' onclick='showHideImageType();'><label for='edit_image_color'>Color</label>";/*untranslated*/
+	code += "<input type='radio' name='edit_image_type' id='edit_image_image' value='image' onclick='showHideImageType();' checked><label for='edit_image_image'><#Captive_Portal_Image#></label>";
+	code += "<input type='radio' name='edit_image_type' id='edit_image_color' value='color' onclick='showHideImageType();'><label for='edit_image_color'><#Captive_Portal_Color#></label>";
 	code += "</div>";
 
 	code += "<div class='captive_portal_adv_line'></div>";
@@ -1503,7 +1538,7 @@ function edit_component_image(_idx) {
 	code += "<div id='edit_image_bg' class='edit_background_bg'>";
 	if(isSupportFileReader() && isSupportCanvas()) {
 		code += "<div id='edit_drag_drop_bg' class='edit_drag_drop_bg edit_drag_drop_bg_for_image' onclick='edit_upload_file_trigger(\"image_" + _idx + "\");'>";
-		code += "<div class='edit_drag_drop_text edit_drag_drop_text_for_image' >Drag the Image here to use<br>or<br>Click here to select Image</div>";/*untranslated*/
+		code += "<div class='edit_drag_drop_text edit_drag_drop_text_for_image'><#Captive_Portal_Upload_Image#><br><#Captive_Portal_OR#><br><#Captive_Portal_Click_Image#></div>";
 		code += "</div>";
 	}
 	else {
@@ -1520,9 +1555,9 @@ function edit_component_image(_idx) {
 		code += "<div class='edit_component_item_content'><input name='edit_image_color_set' id='edit_image_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='FFFFFF' type='text' maxlength='6' autocorrect='off' autocapitalize='off'></div>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'><a style='cursor:help;color:#D0D6D8' href='javascript:void(0);' onClick='openHint(31, 5);'>Web Address Link</a></div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><a style='cursor:help;color:#D0D6D8' href='javascript:void(0);' onClick='openHint(31, 5);'><#Captive_Portal_Web_Address#></a></div>";
 	code += "<div class='edit_component_item_content'>";
-	code += "<input name='edit_image_walled_garden' class='input_30_table auto_add_onblur' value='' type='text' maxlength='64' autocorrect='off' autocapitalize='off'>";
+	code += "<span class='edit_component_item_title'>http://</span><input name='edit_image_walled_garden' class='input_30_table auto_add_onblur' style='width:284px' value='' type='text' maxlength='64' autocorrect='off' autocapitalize='off'>";
 	code += "<span class='input_item_hint'>ex. www.asus.com</span>";
 
 	code += gen_slider("image");
@@ -1583,10 +1618,25 @@ function edit_update_content_text(_component_id) {
 	$("input[name=edit_text_walled_garden]").val($.trim($("input[name=edit_text_walled_garden]").val()));
 	var text_walled_garden = $('input[name="edit_text_walled_garden"]').val();
 	if(text_walled_garden != "") {
-		if(!isValidDomin(text_walled_garden)) {
-			add_hint_msg($('input[name="edit_text_walled_garden"]'), "" + text_walled_garden + " is invalid Domain Name");/*untranslated*/
-			$("input[name=edit_text_walled_garden]").focus();
-			return;
+		var validIPFlag = false;
+		if(text_walled_garden.split(".").length == 4) {
+			var part = text_walled_garden.split(".");
+			if(!isNaN(part[0]) && !isNaN(part[1]) && !isNaN(part[2]) && !isNaN(part[3]))
+				validIPFlag = true;
+		}
+		if(validIPFlag) {
+			if(!validator.ipv4_addr(text_walled_garden)) {
+				add_hint_msg($('input[name="edit_text_walled_garden"]'), "" + text_walled_garden + " <#JS_validip#>");
+				$("input[name=edit_text_walled_garden]").focus();
+				return;
+			}
+		}
+		else {
+			if(!validator.domainName_flag(text_walled_garden)) {
+				add_hint_msg($('input[name="edit_text_walled_garden"]'), "" + text_walled_garden + " is invalid Domain Name");/*untranslated*/
+				$("input[name=edit_text_walled_garden]").focus();
+				return;
+			}
 		}
 	}
 	var text_decoration = (text_walled_garden == "") ? "none" : "underline";
@@ -1654,7 +1704,7 @@ function edit_component_text(_idx) {
 	$("#splash_page_container_edit").html(code);
 
 	code += "<div class='edit_component_item_title'>";
-	code += "Font Style";/*untranslated*/
+	code += "<#Captive_Portal_Font_Style#>";
 	code += "</div>";
 
 	code += "<div class='edit_component_item_content'>";
@@ -1680,12 +1730,12 @@ function edit_component_text(_idx) {
 	code += "<textarea id='edit_text_content' class='edit_text_content auto_add_onblur' onkeyup='edit_update_content_text(\"" + _idx + "\");' maxlength='1024'></textarea>";
 	code += "</div>";
 
-	code += "<div class='edit_component_item_title'><a style='cursor:help;color:#D0D6D8' href='javascript:void(0);' onClick='openHint(31, 5);'>Web Address Link</a></div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><a style='cursor:help;color:#D0D6D8' href='javascript:void(0);' onClick='openHint(31, 5);'><#Captive_Portal_Web_Address#></a></div>";
 	code += "<div class='edit_component_item_content'>";
-	code += "<input name='edit_text_walled_garden' class='input_30_table auto_add_onblur' value='' type='text' maxlength='64' autocorrect='off' autocapitalize='off'>";
+	code += "<span class='edit_component_item_title'>http://</span><input name='edit_text_walled_garden' class='input_30_table auto_add_onblur' style='width:284px' value='' type='text' maxlength='64' autocorrect='off' autocapitalize='off'>";
 	code += "<span class='input_item_hint'>ex. www.asus.com</span>";
 
-	code += "<div class='edit_component_item_title'>Text Color</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Text_Color#></div>";
 	code += "<div class='edit_component_item_content'>";
 	code += "<input name='edit_text_color_set' id='edit_text_color_set' class='jscolor " + jscolor_attr + " input_12_table auto_add_onblur' style='cursor:pointer;' value='000000' type='text' maxlength='6' autocorrect='off' autocapitalize='off'>";
 	code += "</div>";
@@ -1744,7 +1794,7 @@ function gen_splash_page_component(_component, _idx) {
 			break;
 		case "image" :
 			code += "<div id='component_image_" + _idx + "' class='component_bg multi_image' style='left:10px;top:10px;position:absolute;height:100px;width:320px;min-width:60px;min-height:60px;z-index:1;' onclick='edit_component_image(" + _idx + ");'>";
-			code += "<div class='component_title'><span>Image</span></div>";/*untranslated*/
+			code += "<div class='component_title'><span><#Captive_Portal_Image#></span></div>";
 			code += "<div class='component_del' onclick='edit_del_component(\"image_" + _idx + "\" , event);' title='Delete this pattern.'></div>";/*untranslated*/
 			code += "</div>";
 			break;
@@ -1894,7 +1944,7 @@ function edit_component_help() {
 	code += "<div class='edit_component_item_title'>Introduce</div>";/*untranslated*/
 	code += "<div class='edit_component_item_title'>The page will be pop up once the client successful access the Wi-Fi network you designated in the previous step. ASUS BERT-AC828 provide you plenty of pre-customized template.</div>";/*untranslated*/
 
-	code += "<div class='edit_component_item_title'>Editor</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Editor#></div>";
 	code += "<div class='edit_component_item_title'>EThe splash editor allows you to build a self-defined HTML web page with easiest way. The editor supports several web components, which includes Image, Text, EULA and Authentication unit. Just have few of clicks and fill the retired content. At the left hand size, the field is the mobile view that allow user directly position the unit of the web page. After the unit be pitched, you can edit the contents at the right hand size editing field.</div>";/*untranslated*/
 
 	code += "<div class='edit_component_item_title'>Notice</div>";/*untranslated*/
@@ -2253,11 +2303,11 @@ function gen_splash_page() {
 	//tool bar left
 	code += "<div id='splash_page_container_layout' class='splash_page_container_left'>";
 	code += "<div class='splash_page_toolbar_bg_left'>";
-	code += "<div id='toolbar_unit_image' title='<#CTL_add#> Image' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_image' onclick='edit_component_add(\"image\", event);'></div>";/*untranslated*/
-	code += "<div id='toolbar_unit_text' title='<#CTL_add#> Text' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_text' onclick='edit_component_add(\"text\" , event);'></div>";/*untranslated*/
+	code += "<div id='toolbar_unit_image' title='<#CTL_add#> Image' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_image' onclick='edit_component_add(\"image\", event);'></div>";
+	code += "<div id='toolbar_unit_text' title='<#CTL_add#> Text' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_text' onclick='edit_component_add(\"text\" , event);'></div>";
 	code += "<div id='toolbar_unit_account' title='<#CTL_add#> <#PPPConnection_Authentication_itemname#>' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_account' onclick='edit_component_add(\"account\" , event);'></div>";
-	code += "<div id='toolbar_unit_eula' title='<#CTL_add#> Eula' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_eula' onclick='edit_component_add(\"eula\" , event);'></div>";/*untranslated*/
-	code += "<div title='Preview' class='splash_page_toolbar_unit_preview' onclick='preview(event);'></div>";/*untranslated*/
+	code += "<div id='toolbar_unit_eula' title='<#CTL_add#> Eula' class='splash_page_toolbar_unit_bg_left splash_page_toolbar_unit_eula' onclick='edit_component_add(\"eula\" , event);'></div>";
+	code += "<div title='<#btn_Preview#>' class='splash_page_toolbar_unit_preview' onclick='preview(event);'></div>";
 	code += "</div>";
 
 	//component layout left
@@ -2285,14 +2335,14 @@ function gen_splash_page() {
 
 	//toolbar right
 	code += "<div class='splash_page_toolbar_bg_right' onclick='stop_propagation(event);'>";
-	code += "<div id='toolbar_template' title='Template' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_template' onclick='edit_component_template();'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Template</div>";/*untranslated*/
+	code += "<div id='toolbar_template' title='<#Captive_Portal_Template#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_template' onclick='edit_component_template();'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#Captive_Portal_Template#></div>";
 	code += "</div>";
-	code += "<div id='toolbar_background'  title='Background' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_background' onclick='edit_component_background();'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Background</div>";/*untranslated*/
+	code += "<div id='toolbar_background'  title='<#btn_Background#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_background' onclick='edit_component_background();'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#btn_Background#></div>";
 	code += "</div>";
-	code += "<div id='toolbar_editor' title='Editor' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_editor' onclick='edit_component_editor();'>";
-	code += "<div class='splash_page_toolbar_unit_title'>Editor</div>";/*untranslated*/
+	code += "<div id='toolbar_editor' title='<#Captive_Portal_Editor#>' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_editor' onclick='edit_component_editor();'>";
+	code += "<div class='splash_page_toolbar_unit_title'><#Captive_Portal_Editor#></div>";
 	code += "</div>";
 	//code += "<div id='toolbar_customized' title='Customized' class='splash_page_toolbar_unit_bg_right splash_page_toolbar_unit_customized' onclick='edit_component_customized();'>";
 	//code += "<div class='splash_page_toolbar_unit_title'>Customized</div>";/*untranslated*/
@@ -2323,15 +2373,15 @@ function showHideVerification() {
 function gen_account_settings() {
 	var code = "";
 	code += "<div id='account_settings_hint' class='account_settings_hint'>* You didn't have the requirement for both account numbers and ID in the second step, so this step can be ignored. Please directly press the saving button.</div>";
-	code += "<div>Account Setting is an easy guest account management, which allows you to maintain the security for your guest network. The associated client need to enter the following account and password before getting the permission of Internet access.</div>";/*untranslated*/
+	code += "<div><#FreeWiFi_AccountSetting_desc1#></div>";
 	code += "<table width='100%' border='1' align='center' cellpadding='4' cellspacing='0' bordercolor='#6b8fa3' class='FormTable' style='margin-top:15px;'>";
 	code += "<thead>";
 	code += "<tr>";
-	code += "<td colspan='2'>Account Server</td>";/*untranslated*/
+	code += "<td colspan='2'><#FreeWiFi_AccountSetting_Server#></td>";
 	code += "</tr>";
 	code += "</thead>";
 	code += "<tr>";
-	code += "<th>Verification</th>";/*untranslated*/
+	code += "<th><#FreeWiFi_AccountSetting_Verification#></th>";
 	code += "<td>";
 	code += "<input type='radio' name='cpa_verification' id='cpa_verification_local' value='0' onclick='showHideVerification();' checked><label for='cpa_verification_local'>Local</label>";/*untranslated*/
 	code += "<input type='radio' name='cpa_verification' id='cpa_verification_radius' value='1' onclick='showHideVerification();'><label for='cpa_verification_radius'>RADIUS</label>";/*untranslated*/
@@ -2340,7 +2390,7 @@ function gen_account_settings() {
 	code += "</table>";
 
 	code += "<div id='verification_local_bg' style='margin-top:15px;'>";
-	code += "<div>Set up the username and password for Captive Portal authentication.</div>";/*untranslated*/
+	code += "<div><#FreeWiFi_AccountSetting_desc2#></div>";
 	code += "<table width='100%' border='1' align='center' cellpadding='4' cellspacing='0' class='FormTable_table' style='margin-top:15px;'>";
 	code += "<thead>";
 	code += "<tr>";
@@ -2598,6 +2648,22 @@ function editProfile(_profile_id) {
 		$("input[name=cpa_radius_nas_id]").val(edit_profile_content[12]);
 	}
 	showHideVerification();
+
+	if(edit_profile_content[14] == undefined || edit_profile_content[14] == 0) {
+		$("#cpa_bw_dl_unlimited").prop("checked", true);
+	}
+	else {
+		$("#cpa_bw_dl_limited").prop("checked", true);
+		$("input[name=cpa_bw_dl_set]").val(edit_profile_content[14]/1024);
+	}
+
+	if(edit_profile_content[15] == undefined || edit_profile_content[15] == 0) {
+		$("#cpa_bw_ul_unlimited").prop("checked", true);
+	}
+	else {
+		$("#cpa_bw_ul_limited").prop("checked", true);
+		$("input[name=cpa_bw_ul_set]").val(edit_profile_content[15]/1024);
+	}
 
 	show_local_clientlist();
 }
@@ -3068,6 +3134,35 @@ function finishRule(flag) {
 	//profile active (1) or deactivate (0)
 	captive_portal_adv_current_edit_array.push(1);
 
+	//bandwidth limiter
+	if($("input[name=cpa_bw_dl]:checked")[0].id == "cpa_bw_dl_unlimited") {
+		captive_portal_adv_current_edit_array.push(0);
+	}
+	else {
+		if(($("input[name=cpa_bw_dl_set]").val().split(".").length > 2 || $("input[name=cpa_bw_dl_set]").val() < 0.1) || isNaN(parseFloat($("input[name=cpa_bw_dl_set]").val()))) {
+			captive_portal_adv_edit_idx = 1;
+			set_tab_and_action_btn();
+			alert("<#min_bound#> : 0.1 Mb/s");
+			$("input[name=cpa_bw_dl_set]").focus();
+			return false;
+		}
+		captive_portal_adv_current_edit_array.push($("input[name=cpa_bw_dl_set]").val().trim()*1024);
+	}
+
+	if($("input[name=cpa_bw_ul]:checked")[0].id == "cpa_bw_ul_unlimited") {
+		captive_portal_adv_current_edit_array.push(0);
+	}
+	else {
+		if(($("input[name=cpa_bw_ul_set]").val().split(".").length > 2 || $("input[name=cpa_bw_ul_set]").val() < 0.1) || isNaN(parseFloat($("input[name=cpa_bw_ul_set]").val()))) {
+			captive_portal_adv_edit_idx = 1;
+			set_tab_and_action_btn();
+			alert("<#min_bound#> : 0.1 Mb/s");
+			$("input[name=cpa_bw_ul_set]").focus();
+			return false;
+		}
+		captive_portal_adv_current_edit_array.push($("input[name=cpa_bw_ul_set]").val().trim()*1024);
+	}
+
 	//save splash page setting
 	var check_pattern = function(obj) {
 		switch(obj) {
@@ -3295,12 +3390,12 @@ function finishRule(flag) {
 	splash_page_adv_html += "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n";
 	splash_page_adv_html += "<meta HTTP-EQUIV='Pragma' CONTENT='no-cache'>\n";
 	splash_page_adv_html += "<meta HTTP-EQUIV='Expires' CONTENT='-1'>\n";
-	splash_page_adv_html += "<title>Splash Page</title><!--untranslated-->\n";
+	splash_page_adv_html += "<title><#FreeWiFi_title#></title>\n";
 	splash_page_adv_html += "<link rel='stylesheet' type='text/css' href='Uam.css'>\n";
-	splash_page_adv_html += "<script type='text/javascript' src='jquery-1.7.1.min.js'><\/script>\n";
-	splash_page_adv_html += "<script type='text/javascript' src='uam.js'><\/script>\n";
+	splash_page_adv_html += "<_INCLUDE_JQUERY_>\n";
+	splash_page_adv_html += "<_INCLUDE_UAM_>\n";
 
-	splash_page_adv_html += "<script>\n";
+	splash_page_adv_html += "<_TAG_START_>\n";
 	splash_page_adv_html += "var htmlEnDeCode = (function() {\n";
 	splash_page_adv_html += "var charToEntityRegex,\n";
 	splash_page_adv_html += "entityToCharRegex,\n";
@@ -3423,33 +3518,58 @@ function finishRule(flag) {
 	splash_page_adv_html += "gen_component_html(1.4, 1.4);\n";
 	splash_page_adv_html += "}\n";
 	splash_page_adv_html += "}\n";
-
 	splash_page_adv_html += "var splash_page_preview_array = new Array();\n";
-	if(component_array['component_image']) {
-		splash_page_adv_html += "splash_page_preview_array['component_image'] = []\n";
-		var _component_image_obj = Object.keys(component_array['component_image']);
-		var _component_obj_length = _component_image_obj.length;
-		for(var i = 0; i < _component_obj_length; i += 1) {
-			var _idx = _component_image_obj[i];
-			splash_page_adv_html += "splash_page_preview_array['component_image'][" + _idx + "] = "  + JSON.stringify(component_array['component_image'][_idx]) + ";\n";
-		}
-	}
-	if(component_array['component_text']) {
-		splash_page_adv_html += "splash_page_preview_array['component_text'] = []\n";
-		var _component_text_obj = Object.keys(component_array['component_text']);
-		var _component_obj_length = _component_text_obj.length;
-		for(var i = 0; i < _component_obj_length; i += 1) {
-			var _idx = _component_text_obj[i];
-			splash_page_adv_html += "splash_page_preview_array['component_text'][" + _idx + "] = "  + JSON.stringify(component_array['component_text'][_idx]) + ";\n";
-		}
-	}
-	if(component_array["component_eula"])
-		splash_page_adv_html += "splash_page_preview_array['component_eula'] = "  + JSON.stringify(component_array['component_eula']) + ";\n";
-	if(component_array['component_account'])
-		splash_page_adv_html += "splash_page_preview_array['component_account'] = "  + JSON.stringify(component_array['component_account']) + ";\n";
-	splash_page_adv_html += "splash_page_preview_array['component_button'] = "  + JSON.stringify(component_array['component_button']) + ";\n";
-	splash_page_adv_html += "splash_page_preview_array['component_background'] = "  + JSON.stringify(component_array['component_background']) + ";\n";
-
+	splash_page_adv_html += "function get_splash_page_attribute() {\n";
+	splash_page_adv_html += "var result = 'NoData';\n";
+	splash_page_adv_html += "$.ajax({\n";
+	splash_page_adv_html += "url: '/Uam.json',\n";
+	splash_page_adv_html += "dataType: 'json',\n";
+	splash_page_adv_html += "error: function(xhr){\n";
+	splash_page_adv_html += "setTimeout('get_splash_page_attribute();', 1000);\n";
+	splash_page_adv_html += "},\n";
+	splash_page_adv_html += "success: function(response) {\n";
+	splash_page_adv_html += "splash_page_preview_array = [];\n";
+	splash_page_adv_html += "var component_array_element = '';\n";
+	splash_page_adv_html += "if(response.component_image) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_image ) );\n";
+	splash_page_adv_html += "for(var i = 0; i < component_array_element.length; i += 1) {\n";
+	splash_page_adv_html += "var _idx = component_array_element[i].idx;\n";
+	splash_page_adv_html += "if(splash_page_preview_array['component_image'] == undefined)\n";
+	splash_page_adv_html += "splash_page_preview_array['component_image'] = [];\n";
+	splash_page_adv_html += "splash_page_preview_array['component_image'][_idx] = component_array_element[i];\n";
+	splash_page_adv_html += "delete splash_page_preview_array['component_image'][_idx].idx;\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "if(response.component_text) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_text ) );\n";
+	splash_page_adv_html += "for(var i = 0; i < component_array_element.length; i += 1) {\n";
+	splash_page_adv_html += "var _idx = component_array_element[i].idx;\n";
+	splash_page_adv_html += "if(splash_page_preview_array['component_text'] == undefined)\n";
+	splash_page_adv_html += "splash_page_preview_array['component_text'] = [];\n";
+	splash_page_adv_html += "splash_page_preview_array['component_text'][_idx] = component_array_element[i];\n";
+	splash_page_adv_html += "delete splash_page_preview_array['component_text'][_idx].idx;\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "if(response.component_eula) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_eula ) );\n";
+	splash_page_adv_html += "splash_page_preview_array['component_eula'] = [component_array_element];\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "if(response.component_account) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_account ) );\n";
+	splash_page_adv_html += "splash_page_preview_array['component_account'] = [component_array_element];\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "if(response.component_button) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_button ) );\n";
+	splash_page_adv_html += "splash_page_preview_array['component_button'] = [component_array_element];\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "if(response.component_background) {\n";
+	splash_page_adv_html += "component_array_element = JSON.parse( JSON.stringify( response.component_background ) );\n";
+	splash_page_adv_html += "splash_page_preview_array['component_background'] = [component_array_element];\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "re_tune_size();\n";
+	splash_page_adv_html += "}\n";
+	splash_page_adv_html += "});\n";
+	splash_page_adv_html += "}\n";
 	splash_page_adv_html += "function initial() {\n";
 	splash_page_adv_html += "var mql = window.matchMedia('(orientation: portrait)');\n";
 	splash_page_adv_html += "if(mql.matches) {\n";  
@@ -3460,7 +3580,7 @@ function finishRule(flag) {
 	splash_page_adv_html += "windw_width = (screen.height > screen.width) ? screen.height : screen.width;\n";
 	splash_page_adv_html += "windw_height = (screen.height > screen.width) ? screen.width : screen.height;\n";
 	splash_page_adv_html += "}\n";
-	splash_page_adv_html += "re_tune_size();\n";
+	splash_page_adv_html += "get_splash_page_attribute();\n";
 	splash_page_adv_html += "}\n";
 	splash_page_adv_html += "function open_walled_garden(_url) {\n";
 	splash_page_adv_html += "if(_url != '') {\n";
@@ -3782,7 +3902,7 @@ function finishRule(flag) {
 	splash_page_adv_html += "var result = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(_hex);\n";
 	splash_page_adv_html += "return result ? 'rgb(' + parseInt(result[1], 16) + ',' + parseInt(result[2], 16) + ',' + parseInt(result[3], 16) + ')' : 'rgb(255,255,255)';\n";
 	splash_page_adv_html += "}\n";
-	splash_page_adv_html += "<\/script>\n";
+	splash_page_adv_html += "<_TAG_END_>\n";
 	splash_page_adv_html += "</head>\n";
 	splash_page_adv_html += "<body id='component_body' onload='initial();' style='overflow-x:hidden;overflow-y:auto;;background-color:#21333E;font-family:Arial,Helvetica,sans-serif;'>\n";
 	if(component_array['component_eula'])
@@ -3814,10 +3934,7 @@ function finishRule(flag) {
 		captive_portal_adv_profile_list += captive_portal_adv_profile_item;
 		rc_service_wl_en = re_gen_wl_if(captive_portal_adv_profile_item.split(">")[5]);
 		rc_service_wl_dis = "";
-		if($("input[name=cpa_verification]:checked").val() == "0") //local
-			captive_portal_adv_local_clientlist += "<" + profile_id + ">" + local_list_current;
-		else
-			captive_portal_adv_local_clientlist += "<" + profile_id + ">";
+		captive_portal_adv_local_clientlist += "<" + profile_id + ">" + local_list_current;
 	}
 	else {
 		var captive_portal_adv_profile_list_temp = "";
@@ -3843,10 +3960,7 @@ function finishRule(flag) {
 			if(local_clientlist_row[i] != "") {
 				var captive_portal_list_col = local_clientlist_row[i].split(">");
 				if(flag == captive_portal_list_col[0]) {
-					if($("input[name=cpa_verification]:checked").val() == "0") //local
-						adv_local_clientlist_temp += "<" + profile_id + ">" + local_list_current;
-					else
-						adv_local_clientlist_temp += "<" + profile_id + ">";
+					adv_local_clientlist_temp += "<" + profile_id + ">" + local_list_current;
 				}
 				else {
 					adv_local_clientlist_temp += "<" + local_clientlist_row[i];
@@ -3854,7 +3968,8 @@ function finishRule(flag) {
 			}
 		}
 		captive_portal_adv_local_clientlist = adv_local_clientlist_temp;
-
+		if(captive_portal_adv_local_clientlist == "")
+			captive_portal_adv_local_clientlist = "<" + profile_id + ">";
 	}
 
 	if(gn_overwrite_hint != "")
@@ -3864,13 +3979,13 @@ function finishRule(flag) {
 	document.form.force_change.value++;
 	document.form.action_script.value = "set_captive_portal_adv_wl;restart_wireless;restart_CP;restart_uam_srv";
 
-	if(based_modelid == "BRT-AC828") {
+	//if(based_modelid == "BRT-AC828") {
 		var captive_portal_adv_enable_ori = '<% nvram_get("captive_portal_adv_enable"); %>';
 		if(captive_portal_adv_enable_ori == "off") {
-			cookie.set("captive_portal_gn_idx", get_captive_portal_wl_idx("captivePortal"), 1);
+			cookie.set("captive_portal_gn_idx", get_captive_portal_wl_idx("captivePortal") + ">captivePortal", 1);
 			document.form.next_page.value = "Guest_network.asp";
 		}
-	}
+	//}
 
 	document.form.captive_portal_adv_wl_en.value = rc_service_wl_en;
 	document.form.captive_portal_adv_wl_dis.value = rc_service_wl_dis;
@@ -4470,10 +4585,10 @@ function update_connect_status() {
 function exportConnectEventLog() {
 	var data = [];
 	if(event_log_mode) {
-		data = [["MAC Address", "IP Address", "User Name", "Authentication", "Connection Timeout", "Idle Timeout", "Start Time", "Recevied Bytes", "Transmitted Bytes"]];
+		data = [["<#MAC_Address#>", "<#IPConnection_ExternalIPAddress_itemname#>", "<#Username#>", "<#PPPConnection_Authentication_itemname#>", "<#FreeWiFi_timeout#>", "<#FreeWiFi_Idle#>", "<#Captive_Portal_Start_Time#>", "<#Captive_Portal_Recevied_Bytes#>", "<#Captive_Portal_Transmitted_Bytes#>"]];
 	}
 	else {
-		data = [["MAC Address", "IP Address", "User Name", "Authentication", "Failure Time"]];
+		data = [["<#MAC_Address#>", "<#IPConnection_ExternalIPAddress_itemname#>", "<#Username#>", "<#PPPConnection_Authentication_itemname#>", "Failure Time"]];
 	}
 	var tempArray = new Array();
 	var setArray = function(array) {
@@ -4554,18 +4669,18 @@ function show_event_log() {
 
 	code += "<div id='auth_pass_block' class='auth_block' style='display:none;'>";
 	code += "<table width='100%' align='center' cellpadding='0' cellspacing='0' class='FormTable_table'>";
-	code += "<thead><tr style='height:30px;'><td colspan='10'>This is the history log of active connections.";/*untranslated*/
+	code += "<thead><tr style='height:30px;'><td colspan='10'><#Captive_Portal_Connected_Clients#>";
 	code += "</td></tr></thead>";
 	code += "<tr id='tr_auth_pass' style='cursor:pointer;height:40px;'>";
 	code += "<th id='th_macAddress_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");' style='cursor:pointer;'><#PPPConnection_x_MacAddressForISP_itemname#></th>";
 	code += "<th id='th_ipAddress_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#IPConnection_ExternalIPAddress_itemname#></th>";
-	code += "<th id='th_userName_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>User Name</th>";/*untranslated*/
+	code += "<th id='th_userName_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#Username#></th>";
 	code += "<th id='th_auth_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#PPPConnection_Authentication_itemname#></th>";
-	code += "<th id='th_session_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>Connection Timeout</th>";/*untranslated*/
-	code += "<th id='th_awayTimeout_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>Idle Timeout</th>";/*untranslated*/
-	code += "<th id='th_startTime_pass' width='20%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>Start Time</th>";/*untranslated*/
-	code += "<th id='th_receviedBytes_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>Recevied Bytes</th>";/*untranslated*/
-	code += "<th id='th_transmittedBytes_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'>Transmitted Bytes</th>";/*untranslated*/
+	code += "<th id='th_session_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#FreeWiFi_timeout#></th>";
+	code += "<th id='th_awayTimeout_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#FreeWiFi_Idle#></th>";
+	code += "<th id='th_startTime_pass' width='20%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#Captive_Portal_Start_Time#></th>";
+	code += "<th id='th_receviedBytes_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#Captive_Portal_Recevied_Bytes#></th>";
+	code += "<th id='th_transmittedBytes_pass' width='10%' onclick='connect_status_sorter.addBorder(\"pass\", this);connect_status_sorter.doSorter(\"pass\");'><#Captive_Portal_Transmitted_Bytes#></th>";
 	code += "</tr>";
 	code += "</table>";
 	code += "<div id='connect_client_auth_pass_block'></div>";
@@ -4574,12 +4689,12 @@ function show_event_log() {
 	code += "<div id='auth_failed_block' class='auth_block' style='display:none;'>";
 
 	code += "<table width='100%' border='1' align='center' cellpadding='0' cellspacing='0' class='FormTable_table' style='margin-top:0px;'>";
-	code += "<thead><tr style='height:30px;'><td colspan='5'>This is the history log of active connections.";/*untranslated*/
+	code += "<thead><tr style='height:30px;'><td colspan='5'><#Captive_Portal_Connected_Clients#>";
 	code += "</td></tr></thead>";
 	code += "<tr id='tr_auth_failed' style='cursor:pointer;height:40px;'>";
 	code += "<th id='th_macAddress_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'><#PPPConnection_x_MacAddressForISP_itemname#></th>";
 	code += "<th id='th_ipAddress_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'><#IPConnection_ExternalIPAddress_itemname#></th>";
-	code += "<th id='th_userName_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'>User Name</th>";/*untranslated*/
+	code += "<th id='th_userName_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'><#Username#></th>";
 	code += "<th id='th_auth_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'><#PPPConnection_Authentication_itemname#></th>";
 	code += "<th id='th_startTime_failed' width='20%' onclick='connect_status_sorter.addBorder(\"failed\", this);connect_status_sorter.doSorter(\"failed\");'>Failure Time</th>";/*untranslated*/
 	code += "</tr>";
@@ -4674,7 +4789,7 @@ function register_slider(_component_type) {
 }
 function gen_slider(_component_type) {
 	var code = "";
-	code += "<div class='edit_component_item_title'>Opacity</div>";/*untranslated*/
+	code += "<div class='edit_component_item_title'><#Captive_Portal_Opacity#></div>";
 	code += "<div id='edit_" + _component_type + "_opacity' class='slider' title='100'></div>";
 	code += "<div id='edit_" + _component_type + "_opacity_text' class='slider_text'>100%</div>";
 	code += "<div style='clear:both;'></div>";
@@ -4700,7 +4815,7 @@ function edit_sort_level(_component_id, _method) {
 }
 function gen_sort_level(_component_id) {
 	var code = "";
-	code += "<div class='edit_component_item_title' style='margin-bottom:8px;'>Layer: <span id='edit_component_level' class='edit_component_level'>" + $("#"+ _component_id + "").css("z-index") + "</span></div>";/*untranslated*/
+	code += "<div class='edit_component_item_title' style='margin-bottom:8px;'><#Captive_Portal_Layer#>: <span id='edit_component_level' class='edit_component_level'>" + $("#"+ _component_id + "").css("z-index") + "</span></div>";/*untranslated*/
 	code += "<div class='edit_level edit_level_up' title='increase' onclick='edit_sort_level(\"" + _component_id + "\", \"increase\");'></div>";
 	code += "<div class='edit_level edit_level_down' title='decrease' onclick='edit_sort_level(\"" + _component_id + "\", \"decrease\");'></div>";
 	code += "<div style='clear:both;'></div>";
@@ -4817,19 +4932,6 @@ function remove_hint_msg() {
 		$(".hint_msg").remove();
 	}
 }
-function isValidDomin(_val) {
-	//domin name
-	 var re = new RegExp(/^((?:(?:(?:\w[\.\-\+]?)*)\w)+)((?:(?:(?:\w[\.\-\+]?){0,62})\w)+)\.(\w{2,6})$/); 
-	 if(_val.match(re))
-	 	return true;
-
-	//ip
-	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(_val)) {
-		return true;
-	}
-
-	return false;
-}
 </script>
 
 </head>
@@ -4847,7 +4949,7 @@ function isValidDomin(_val) {
 <input type="hidden" name="modified" value="0">
 <input type="hidden" name="action_mode" value="apply_new">
 <input type="hidden" name="action_script" value="restart_wireless;restart_CP;restart_uam_srv;">
-<input type="hidden" name="action_wait" value="15">
+<input type="hidden" name="action_wait" value="50">
 <input type="hidden" name="preferred_lang" id="preferred_lang" value="<% nvram_get("preferred_lang"); %>">
 <input type="hidden" name="firmver" value="<% nvram_get("firmver"); %>">
 <input type="hidden" name="captive_portal_adv_enable" value="<% nvram_get("captive_portal_adv_enable"); %>">
@@ -4883,12 +4985,12 @@ function isValidDomin(_val) {
 							<tr>
 								<td bgcolor="#4D595D" valign="top">
 									<div>&nbsp;</div>
-									<div class="formfonttitle"><#Guest_Network#> - Captive Portal<!--untranslated--></div>
+									<div class="formfonttitle"><#Guest_Network#> - <#Captive_Portal#></div>
 									<div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
 									<div class="captive_portal_adv_intro_icon"></div>
 									<div style='float:left;width:80%;'>
-									<div class="captive_portal_adv_intro_txt" style="color:#FC0;">The Captive Portal cannot work on signal extended WLAN service, such as using Wi-Fi repeater and Media Bridge</div><!--untranslated-->
-									<div class="captive_portal_adv_intro_txt">Captive portal provides you a secure web authentication method for protecting your guest or visitor network. As an administrator, you can configure access policies and account permission. A guest client are allowed to access the internet only when getting the permission through the pop-up splash web.<!--untranslated--></div>
+									<div class="captive_portal_adv_intro_txt" style="color:#FC0;"><#Captive_Portal_desc1#></div>
+									<div class="captive_portal_adv_intro_txt"><#Captive_Portal_desc2#></div>
 									</div>
 									<div style="clear:both;"></div>
 									<div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
@@ -4899,7 +5001,7 @@ function isValidDomin(_val) {
 										</tr>
 										</thead>
 										<tr>
-											<th>Enable Captive Portal<!--untranslated--></th>
+											<th><#Captive_Portal_enable#></th>
 											<td>
 												<div align="center" class="left" style="float:left;cursor:pointer;" id="radio_captive_portal_enable"></div>
 												<div class="iphone_switch_container" style="height:32px; width:74px; position: relative; overflow: hidden;"></div>
@@ -4923,14 +5025,14 @@ function isValidDomin(_val) {
 											</td>
 										</tr>
 										<tr id="tr_idle_timeout">
-											<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(31, 1);">Authentication Timeout<!--untranslated--></a></th>
+											<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(31, 1);"><#Captive_Portal_timeout#></a></th>
 											<td>
 												<input type="text" maxlength="3" class="input_6_table" id="captive_portal_adv_idle_timeout" name="captive_portal_adv_idle_timeout" value="<% nvram_get("captive_portal_adv_idle_timeout"); %>" onkeypress="return validator.isNumber(this,event)" autocorrect="off" autocapitalize="off">
-												<span style="color:#FFCC00;">(Range: 60 - 800, <#Setting_factorydefault_value#>: 300 <#Second#>)</span>
+												<span style="color:#FFCC00;">(<#Captive_Portal_Range#>: 60 - 800, <#Setting_factorydefault_value#>: 300 <#Second#>)</span>
 											</td>
 										</tr>
 										<tr id="tr_event_log">
-											<th>Connection Event<!--untranslated--></th>
+											<th><#Captive_Portal_event#></th>
 											<td>
 												<input class='button_gen' onclick='show_event_log();' type='button' value='<#liveupdate#>'/>
 											</td>
@@ -4946,11 +5048,11 @@ function isValidDomin(_val) {
 										<table width="100%" align="center" cellpadding="4" cellspacing="0" class="FormTable_table">
 											<thead>
 											<tr>
-												<td id="td_profile_table_title" colspan="5">Captive Profile &nbsp;(<#List_limit#>&nbsp;1)<!--untranslated--></td>
+												<td id="td_profile_table_title" colspan="5"><#Captive_Portal_Profile#> &nbsp;(<#List_limit#>&nbsp;1)</td>
 											</tr>
 											</thead>
 											<tr>
-												<th width="30%">Brand Name<!--untranslated--></th>
+												<th width="30%"><#FreeWiFi_BrandName#></th>
 												<th width="20%"><#PPPConnection_Authentication_itemname#></th>
 												<th width="30%"><#QIS_finish_wireless_item1#></th>
 												<th width="10%"><#pvccfg_edit#></th>

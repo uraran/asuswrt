@@ -42,7 +42,7 @@
 
 #define SECOND_JFFS2_PATH	"/asus_jffs"
 
-int jffs2_fail;
+int jffs2_fail = 0;
 
 static void error(const char *message)
 {
@@ -80,6 +80,9 @@ unsigned int get_root_type(void)
 		case MODEL_RTAC1200GU:
 		case MODEL_RTAC1200:
 		case MODEL_RTN11P_B1:
+		case MODEL_RPAC53:
+		case MODEL_RPAC55:
+		case MODEL_MAPAC1750:
 			return 0x73717368;      /* squashfs */
 		case MODEL_GTAC5300:
 		case MODEL_RTAC86U:
@@ -226,7 +229,9 @@ void start_jffs2(void)
 	if (!mtd_getinfo(JFFS2_PARTITION, &part, &size)) return;
 
 	model = get_model();
+	jffs2_fail = 0;
 	_dprintf("start jffs2: %d, %d\n", part, size);
+
 	if (nvram_match("jffs2_format", "1")) {
 		nvram_set("jffs2_format", "0");
 		if ((model==MODEL_RTAC56U || model==MODEL_RTAC56S || model==MODEL_RTAC3200 || model==MODEL_RTAC68U || model==MODEL_DSLAC68U || model==MODEL_RTAC87U || model==MODEL_RTAC88U || model==MODEL_RTAC86U || model==MODEL_RTAC3100 || model==MODEL_RTAC5300 || model==MODEL_GTAC5300 || model==MODEL_RTN18U || model==MODEL_RTAC1200G || model==MODEL_RTAC1200GP) ^ (!mtd_erase(JFFS2_MTD_NAME))){
@@ -279,6 +284,11 @@ void start_jffs2(void)
 		}
 	}
 
+	if(jffs2_fail == 1) {
+		nvram_set("jffs2_fail", "1");
+		nvram_commit();
+	}
+
 	if (nvram_match("force_erase_jffs2", "1")) {
 		_dprintf("\n*** force erase jffs2 ***\n");
 		mtd_erase(JFFS2_MTD_NAME);
@@ -302,14 +312,18 @@ void start_jffs2(void)
 		return;
 	}
 #endif
-
 	if (nvram_get_int("jffs2_clean_fs")) {
 		_dprintf("Clean /jffs/*\n");
 		system("rm -fr /jffs/*");
 		nvram_unset("jffs2_clean_fs");
 		nvram_commit_x();
+		if((0 == nvram_get_int("x_Setting")) && (check_if_file_exist("/jffs/.sys/remove_hidden_flag")))
+		{
+			system("rm -rf /jffs/.sys");
+			_dprintf("Clean /jffs/.sys\n");
+		}
 	}
-
+	
 	notice_set("jffs", format ? "Formatted" : "Loaded");
 	jffs2_fail = 0;
 

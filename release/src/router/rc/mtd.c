@@ -189,6 +189,9 @@ int mtd_unlock_erase_main(int argc, char *argv[])
 	int c;
 	char *dev = NULL;
 
+#ifdef RTCONFIG_LANTIQ
+	nvram_set(ASUS_STOP_COMMIT, "1");
+#endif
 	while ((c = getopt(argc, argv, "d:")) != -1) {
 		switch (c) {
 		case 'd':
@@ -989,7 +992,6 @@ int hnd_nvram_erase()
 {
 	int err = 0;
 
-	_dprintf("Erasing nvram ...\n");
 	if (access(PRE_COMMIT_KERNEL_NVRM_FILE, F_OK) != -1 &&
 		unlink(PRE_COMMIT_KERNEL_NVRM_FILE) < 0) {
 		_dprintf("*** Failed to delete file %s. Error: %s\n",
@@ -1018,6 +1020,8 @@ int hnd_nvram_erase()
 		err = errno;
 	}
 
+	sync();
+	_dprintf("Erasing nvram done\n");
 	return err;
 }
 

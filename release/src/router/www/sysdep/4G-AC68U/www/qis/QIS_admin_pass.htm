@@ -23,7 +23,7 @@
 <script type="text/JavaScript" language="JavaScript" src="/js/jquery.js"></script>
 <script type="text/JavaScript" language="JavaScript" src="/validator.js"></script>
 <script type="text/javascript">
-var accounts = [<% get_all_accounts(); %>];
+var accounts = [<% get_all_accounts(); %>][0];
 <% wanstate(); %>
 if(parent.dual_ewan){
 	var autodet_state ='<% nvram_get("autodet_state"); %>';
@@ -64,16 +64,9 @@ for(var i=0; i<accounts.length; i++){
 		accounts[i] = decodeURIComponent(accounts[i]);	
 }
 
-<% dual_wanstate(); %>
 var wans_mode = '<% nvram_get("wans_mode"); %>';
 
 function QKinternettype_load_body(){
-	if(parent.based_modelid == "RT-N11P" || parent.based_modelid == "RT-N300" || parent.based_modelid == "PL-N12" || parent.based_modelid == "PL-AC56" || parent.based_modelid == "BRT-AC828"){
-			document.getElementById("point4").style.display = "none";
-	}
-	else{
-			document.getElementById("general_desc4").style.display = "";
-	}		
 	
 	if(parent.ISMOBILE){
 		parent.document.title = "<#Web_Title2#>";
@@ -156,6 +149,79 @@ function getDualWANState(){
 	if(usb_wanstate == 2 && usb_wansbstate == 0 && usb_wanauxstate == 0)
 		parent.usb_connected = 1;
 
+}
+
+function check_autodet_state(){
+	$.ajax({
+		url: '/appGet.cgi?hook=nvram_get(autodet_state)%3bnvram_get(autodet_auxstate)%3bnvram_get(autodet1_state)%3bnvram_get(autodet1_auxstate)%3bnvram_get(wan0_state_t)%3bnvram_get(wan0_sbstate_t)%3bnvram_get(wan0_auxstate_t)%3bnvram_get(wan1_state_t)%3bnvram_get(wan1_sbstate_t)%3bnvram_get(wan1_auxstate_t)%3bnvram_get(wan0_primary)%3bnvram_get(wan1_primary)',
+		dataType: "html",
+
+		error: function(xhr){
+			check_autodet_state();
+		},
+		success: function(response){
+			var resJson = JSON.parse(response);
+			autodet_state = resJson.autodet_state;
+			autodet_auxstate = resJson.autodet_auxstate;
+			if(parent.dual_ewan){
+				autodet1_state = resJson.autodet1_state;
+				autodet1_auxstate = resJson.autodet1_auxstate;
+			}
+
+			first_wanstate = resJson.wan0_state_t;
+			first_wansbstate = resJson.wan0_sbstate_t;
+			first_wanauxstate = resJson.wan0_auxstate_t;
+			second_wanstate = resJson.wan1_state_t;
+			second_wansbstate = resJson.wan1_sbstate_t;
+			second_wanauxstate = resJson.wan1_auxstate_t;
+
+			if(parent.dual_ewan){
+				if(wans_mode == "lb"){
+					if(parent.cur_wan_unit == 0){
+						wanstate = first_wanstate;
+						wansbstate = first_wansbstate;
+						wanauxstate = first_wanauxstate;
+					}
+					else if(parent.cur_wan_unit == 1){
+						wanstate = second_wanstate;
+						wansbstate = second_wansbstate;
+						wanauxstate = second_wanauxstate;
+					}
+				}
+				else{
+					if(resJson.wan0_primary == "1"){
+						wanstate = first_wanstate;
+						wansbstate = first_wansbstate;
+						wanauxstate = first_wanauxstate;
+					}
+					else if(resJson.wan1_primary == "1"){
+						wanstate = second_wanstate;
+						wansbstate = second_wansbstate;
+						wanauxstate = second_wanauxstate;
+					}
+				}
+			}
+			else{
+				if(parent.dualWAN_support && wans_mode != "lb"){
+					if(resJson.wan0_primary == "1"){
+						wanstate = first_wanstate;
+						wansbstate = first_wansbstate;
+						wanauxstate = first_wanauxstate;
+					}
+					else if(resJson.wan1_primary == "1"){
+						wanstate = second_wanstate;
+						wansbstate = second_wansbstate;
+						wanauxstate = second_wanauxstate;
+					}
+				}
+				else{
+					wanstate = resJson.wan0_state_t;
+					wansbstate = resJson.wan0_sbstate_t;
+					wanauxstate = resJson.wan0_auxstate_t;
+				}
+			}
+		}
+	});
 }
 
 function submitForm(){
@@ -355,7 +421,14 @@ function submitForm(){
 				}
 				else{
 					parent.changeSubnet = false;
-					parent.document.QKform.wan_proto.value = "pppoe";
+					if(parent.gobi_support && parent.dualwan_enabled){
+						if(parent.ewan_index == 0)
+							parent.document.QKform.wan0_proto.value = "pppoe";
+						else
+							parent.document.QKform.wan1_proto.value = "pppoe";
+					}
+					else
+						parent.document.QKform.wan_proto.value = "pppoe";
 					document.form.action = "/qis/QIS_internet_account.htm";
 				}
 			}
@@ -378,7 +451,7 @@ function submitForm(){
 							document.form.action = "/qis/QIS_internet_type.htm";
 					}
 					else{
-						document.form.action = "/qis/QIS_dualewan_status.htm";
+						document.form.action = "/qis/QIS_wireless.htm";
 					}
 				}
 				else
@@ -397,7 +470,10 @@ function submitForm(){
 				}
 			}
 			else{
-				document.form.action = "/qis/QIS_internet_type.htm";
+				if(parent.noWAN_support)
+					document.form.action = "/qis/QIS_wireless.htm";
+				else
+					document.form.action = "/qis/QIS_internet_type.htm";
 			}
 		}
 		else{
@@ -573,7 +649,7 @@ function paste_password(){
 		<tr>
 			<th width="240"><a class="hintstyle" href="javascript:void(0);" onClick="openHint(11,4)"><#PASS_new#></a></th>
 			<td class="QISformtd">
-				<input type="password" autocomplete="off" value="" name="http_passwd" tabindex="2" style="height:25px;" class="input_18_table" maxlength="16" onkeyup="chkPass(this.value, 'http_passwd');" onpaste="setTimeout('paste_password();', 10)" onBlur="clean_scorebar(this);" autocorrect="off" autocapitalize="off">
+				<input type="password" autocomplete="off" value="" name="http_passwd" tabindex="2" style="height:25px;" class="input_18_table" maxlength="16" onkeyup="chkPass(this.value, 'http_passwd');" onpaste="setTimeout('paste_password();', 10)" onBlur="clean_scorebar(this);check_autodet_state();" autocorrect="off" autocapitalize="off">
 			&nbsp;&nbsp;
 				<div id="scorebarBorder" style="margin-left:180px; margin-top:-26px; display:none;" title="<#LANHostConfig_x_Password_itemSecur#>">
 				<div id="score" style="margin-top:3px;"></div>
@@ -611,7 +687,6 @@ function paste_password(){
 	<div id="adminPassDesc" class="QISTutorFont_admin_pass" style="height:200px;margin-left:-10px;">
 		<ul>
 			<li><#QIS_pass_desc3#>
-			<li id="point4"><div id="general_desc4" style="display:none;"><#QIS_pass_desc4#></div>
 			<li><#QIS_pass_desc5#>&nbsp;<% nvram_default_get("http_username"); %>&nbsp;/&nbsp;<% nvram_default_get("http_passwd"); %>
 		</ul>
 	</div>

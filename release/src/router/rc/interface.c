@@ -184,6 +184,23 @@ int _ifconfig(const char *name, int flags, const char *addr, const char *netmask
 	struct ifreq ifr;
 	struct in_addr in_addr, in_netmask, in_broadaddr;
 
+#ifdef RTCONFIG_LANTIQ
+	if(strcmp(name, "wlan0") == 0 ||
+		strcmp(name, "wlan2") == 0){
+		if(flags == 0){
+			_dprintf("[%s][%d]skip name:[%s]\n", __func__, __LINE__, name);
+			return -1;
+		}
+	}
+	if(strcmp(name, "eth0_1") == 0 ||
+		strcmp(name, "eth0_2") == 0 ||
+		strcmp(name, "eth0_3") == 0 ||
+		strcmp(name, "eth0_4") == 0){
+		set_hwaddr(name, get_lan_hwaddr());
+		if(flags == 0) return -1;
+	}
+#endif
+
 	_dprintf("%s: name=%s flags=%04x %s addr=%s netmask=%s\n", __FUNCTION__, name ? : "", 
 		flags, (flags & IFUP) ? "IFUP" : "", addr ? : "", netmask ? : "");
 
@@ -335,11 +352,11 @@ static int route_manip(int cmd, char *name, int metric, char *dst, char *gateway
 
 	/* Fill in rtentry */
 	memset(&rt, 0, sizeof(rt));
-	if (dst)
+	if (dst && *dst)
 		inet_aton(dst, &sin_addr(&rt.rt_dst));
-	if (gateway)
+	if (gateway && *gateway)
 		inet_aton(gateway, &sin_addr(&rt.rt_gateway));
-	if (genmask)
+	if (genmask && *genmask)
 		inet_aton(genmask, &sin_addr(&rt.rt_genmask));
 	rt.rt_metric = metric;
 	rt.rt_flags = RTF_UP;
@@ -436,19 +453,21 @@ int ipv6_mapaddr4(struct in6_addr *addr6, int ip6len, struct in_addr *addr4, int
 /* configure/start vlan interface(s) based on nvram settings */
 int start_vlan(void)
 {
-#ifndef HND_ROUTER
+#if !defined(HND_ROUTER) && !defined(BLUECAVE)
 	int s;
 	struct ifreq ifr;
 	int i, j;
 	char ea[ETHER_ADDR_LEN];
 
 	if ((strtoul(nvram_safe_get("boardflags"), NULL, 0) & BFL_ENETVLAN) == 0) return 0;
+	struct ifreq ifr_re;
 #endif
-	
+#if !defined(BLUECAVE)
 	/* set vlan i/f name to style "vlan<ID>" */
 	eval("vconfig", "set_name_type", "VLAN_PLUS_VID_NO_PAD");
+#endif
 
-#ifndef HND_ROUTER
+#if !defined(HND_ROUTER) && !defined(BLUECAVE)
 	/* create vlan interfaces */
 	if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0)
 		return errno;
@@ -475,7 +494,7 @@ int start_vlan(void)
 		for (j = 1; j <= DEV_NUMIFS; j ++) {
 			ifr.ifr_ifindex = j;
 			if (ioctl(s, SIOCGIFNAME, &ifr))
-				continue;
+				continue;		
 			if (ioctl(s, SIOCGIFHWADDR, &ifr))
 				continue;
 			if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
@@ -490,6 +509,7 @@ int start_vlan(void)
 			ifr.ifr_data = (caddr_t)&info;
 			if (ioctl(s, SIOCETHTOOL, &ifr) < 0)
 				continue;
+
 			if (strcmp(info.driver, hwname) == 0)
 				break;
 #else
@@ -514,6 +534,14 @@ int start_vlan(void)
 			snprintf(prio, sizeof(prio), "%d", j);
 			eval("vconfig", "set_ingress_map", vlan_id, prio, prio);
 		}
+		if (nvram_get_int("re_mode") == 1 && strcmp(nvram_safe_get("eth_ifnames"), "")) {			
+			/* Assign hw address for upstream vlanX interface. */
+				memcpy(ifr_re.ifr_name, nvram_safe_get("eth_ifnames"), IFNAMSIZ);
+				memcpy(ifr_re.ifr_hwaddr.sa_data, ea, ETHER_ADDR_LEN);
+				ifr_re.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+				ifr_re.ifr_hwaddr.sa_data[0] = ifr_re.ifr_hwaddr.sa_data[0] | 0x02;
+				ioctl(s, SIOCSIFHWADDR, &ifr_re);
+		}
 	}
 	close(s);
 #endif
@@ -522,7 +550,11 @@ int start_vlan(void)
 	if(!nvram_match("switch_wantag", "none")&&!nvram_match("switch_wantag", "")&&!nvram_match("switch_wantag", "hinet"))
 	{
 #if defined(RTCONFIG_QCA)
+#if defined(RTCONFIG_SWITCH_RTL8370MB_PHY_QCA8033_X2)
+		char *wan_base_if = "eth1";	/* lan_1, WAN interface if IPTV is enabled. */
+#else
 		char *wan_base_if = "eth0";
+#endif
 #elif defined(RTCONFIG_RALINK)
 #if defined(RTCONFIG_RALINK_MT7620) /* RT-N14U, RT-AC52U, RT-AC51U, RT-N11P, RT-N54U, RT-AC1200HP, RT-AC54U */
 		char *wan_base_if = "eth2";
@@ -559,9 +591,15 @@ int start_vlan(void)
 #endif
 #endif
 
-#ifdef HND_ROUTER
-	if(!nvram_match("switch_wantag", "none")&&!nvram_match("switch_wantag", "")&&!nvram_match("switch_wantag", "hinet")) {
+#if defined(HND_ROUTER)
+	if(!nvram_match("switch_wantag", "") && (nvram_get_int("switch_stb_x") > 0 || nvram_match("switch_wantag", "unifi_biz") || nvram_match("switch_wantag", "manual"))) {
 		char *wan_base_if = "eth0";
+		ifconfig(wan_base_if, IFUP, NULL, NULL);
+		set_wan_tag(wan_base_if);
+	}
+#elif defined(BLUECAVE)
+	if(!nvram_match("switch_wantag", "") && (nvram_get_int("switch_stb_x") > 0 || nvram_match("switch_wantag", "unifi_biz") || nvram_match("switch_wantag", "manual"))) {
+		char *wan_base_if = "eth1";
 		ifconfig(wan_base_if, IFUP, NULL, NULL);
 		set_wan_tag(wan_base_if);
 	}
@@ -572,7 +610,7 @@ int start_vlan(void)
 /* stop/rem vlan interface(s) based on nvram settings */
 int stop_vlan(void)
 {
-#ifndef HND_ROUTER
+#if !defined(HND_ROUTER) && !defined(BLUECAVE)
 	int i;
 	char nvvar_name[16];
 	char vlan_id[16];

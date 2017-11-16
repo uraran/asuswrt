@@ -3,6 +3,7 @@ include ../common.mak
 CFLAGS += -Os -Wall $(EXTRACFLAGS)
 CFLAGS += $(PRIVATE_EXTRACFLAGS)
 CFLAGS += -I$(SRCBASE) -I. -I$(SRCBASE)/include -I$(TOP)/shared -I$(TOP)/zlib -I$(TOP)/networkmap
+CFLAGS += -I$(TOP)/push_log
 CFLAGS += -DASUS_DDNS -DTRANSLATE_ON_FLY -DFLASH_EMULATOR -DLinux -DWSC 
 
 ifeq ($(RTCONFIG_NETOOL),y)
@@ -35,7 +36,6 @@ ifeq ($(RTCONFIG_ALPINE),y)
 CFLAGS += -DALPINE_WPS
 CFLAGS += -I$(TOP)/httpd/sysdeps -I$(TOP)/shared/sysdeps/alpine -I$(TOP)/wireless_tools
 endif
-
 ifeq ($(RTCONFIG_LANTIQ),y)
 CFLAGS += -DLANTIQ_WPS
 CFLAGS += -I$(TOP)/shared/sysdeps/lantiq -I$(TOP)/wireless_tools
@@ -70,6 +70,10 @@ endif
 ifeq ($(RTCONFIG_TRAFFIC_LIMITER),y)
 CFLAGS += -I$(TOP)/traffic_limiter
 CFLAGS += -I$(TOP)/sqlite
+endif
+
+ifeq ($(RTCONFIG_SW_HW_AUTH), y)
+CFLAGS += -I$(TOP)/sw-hw-auth
 endif
 
 ifeq ($(or $(RTAC68A),$(RT4GAC68U)),y)
@@ -146,6 +150,10 @@ LIBS += -L$(TOP)/libqcsapi_client -lqcsapi_client
 endif
 endif
 
+ifeq ($(RTCONFIG_AMAS),y)
+LDFLAGS += -L$(TOP)/json-c/.libs -ljson-c
+endif
+
 ifeq ($(RTCONFIG_USB),y)
 CFLAGS += -I$(TOP)/libdisk	
 LIBS += -L$(TOP)/libdisk -ldisk
@@ -209,6 +217,24 @@ LIBS += -L$(TOP)/sqlite/.libs -lsqlite3
 LIBS += -lpthread #Depend on sqlite
 endif
 
+ifeq ($(RTCONFIG_NOTIFICATION_CENTER),y)
+ifeq ($(or $(RTCONFIG_IFTTT),$(RTCONFIG_ALEXA)),y)
+CFLAGS  += -I$(TOP)/aaews
+endif
+endif
+
+ifeq ($(RTCONFIG_LETSENCRYPT),y)
+CFLAGS  += -I$(TOP)/libletsencrypt
+LIBS += -L$(TOP)/libletsencrypt -lletsencrypt
+endif
+
+ifeq ($(RTCONFIG_PERMISSION_MANAGEMENT),y)
+CFLAGS  += -I$(TOP)/sqlCipher
+CFLAGS  += -I$(TOP)/PMS_DBapis
+LIBS += -L$(TOP)/PMS_DBapis -lpms_sql
+LIBS += -L $(TOP)/sqlCipher/.libs -lsqlcipher
+endif
+
 ifeq ($(RTCONFIG_CFGSYNC),y)
 CFLAGS += -I$(TOP)/cfg_mnt
 LIBS += -L$(TOP)/cfg_mnt -lcfgmnt
@@ -221,6 +247,10 @@ endif
 
 CFLAGS += -I$(TOP)/libpasswd
 LIBS += -L$(TOP)/libpasswd -lpasswd
+
+ifeq ($(RTCONFIG_LANTIQ),y)
+LIBS += -L$(TOP)/fapi_wlan_common-1.0.0.1 -lfapiwlancommon -ldl -L$(TOP)/libhelper-1.4.0.2 -lhelper -L$(TOP)/libfapi-0.1 -lfapi -L$(TOP)/wireless_tools/ -liw
+endif
 
 all: httpd #test_apps
 

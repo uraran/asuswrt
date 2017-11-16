@@ -17,6 +17,16 @@
 #ifndef __libnt_h__
 #define __libnt_h__
 
+/* IFTTT DEBUG DEFINE SETTING 
+---------------------------------*/
+#define COMMON_IFTTT_DEBUG                     "/tmp/IFTTT_ALEXA"
+#define COMMON_IFTTT_LOG_FILE                  "/tmp/IFTTT_ALEXA.log"
+
+#define IFTTT_DEBUG(fmt,args...) \
+	if(isFileExist(COMMON_IFTTT_DEBUG) > 0) { \
+		Debug2File(COMMON_IFTTT_LOG_FILE, "[%s:(%d)]"fmt, __FUNCTION__, __LINE__, ##args); \
+	}
+
 /* nt_share.c */
 extern NOTIFY_EVENT_T *initial_nt_event();
 extern void nt_event_free(NOTIFY_EVENT_T *e);
@@ -33,6 +43,7 @@ extern void SEND_NT_EVENT(int event, const char *msg);
 #define xfree(ptr) __xfree(ptr); ptr = NULL
 #define xvstrsep(buf, sep, args...) _xvstrsep(buf, sep, args, NULL)
 extern void Debug2Console(const char * format, ...);
+extern void Debug2File(const char *FilePath, const char * format, ...);
 extern int isFileExist(char *fname);
 extern int isDirectoryExist(char *fname);
 extern int get_pid_num_by_name(char *pidName);
@@ -59,6 +70,7 @@ extern int NT_DBCommand(char *action, NOTIFY_DATABASE_T *input);
 
 /* #### API for httpd #### */
 extern int NT_DBAction(struct list *event_list, char *action, NOTIFY_DATABASE_T *input, char *count);
+extern int NT_DBActionAPP(struct list *event_list, char *action, NOTIFY_DATABASE_T *input, char *page, char *count);
 extern void NT_DBFree(struct list *event_list);
 extern int NT_DBCount();
 

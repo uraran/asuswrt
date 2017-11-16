@@ -12,10 +12,6 @@ extern void init_wl(void);
 #if defined(RTCONFIG_QCA)
 extern void load_wifi_driver(void);
 extern void load_testmode_wifi_driver(void);
-extern char *__get_wlifname(int band, int subunit, char *buf);
-extern int get_wlsubnet(int band, const char *ifname);
-extern char *get_staifname(int band);
-extern char *get_vphyifname(int band);
 #endif
 #if defined(RTCONFIG_ALPINE)
 extern void load_wifi_driver(void);
@@ -23,15 +19,10 @@ extern void load_testmode_wifi_driver(void);
 extern char *__get_wlifname(int band, int subunit, char *buf);
 extern char *get_staifname(int band);
 extern char *get_vphyifname(int band);
-extern void reinit_hwnat(int unit);
 #endif
 #if defined(RTCONFIG_LANTIQ)
 extern void load_wifi_driver(void);
 extern void load_testmode_wifi_driver(void);
-extern char *__get_wlifname(int band, int subunit, char *buf);
-extern char *get_staifname(int band);
-extern char *get_vphyifname(int band);
-extern void reinit_hwnat(int unit);
 #endif
 extern void fini_wl(void);
 extern void init_syspara(void);
@@ -51,13 +42,14 @@ extern void reinit_sfe(int unit);
 static inline void tweak_wifi_ps(const char *wif) { }
 #elif defined(RTCONFIG_SOC_IPQ8064)
 #define reinit_hwnat(unit) reinit_ecm(unit)
+extern int ecm_selection(void);
+extern void init_ecm(void);
 extern void reinit_ecm(int unit);
+extern void post_ecm(void);
 extern void tweak_wifi_ps(const char *wif);
 #else
 #error
 #endif
-#elif defined(RTCONFIG_REALTEK)
-static inline void reinit_hwnat(int unit) { }
 #endif
 extern char *get_wlifname(int unit, int subunit, int subunit_x, char *buf);
 extern int wl_exist(char *ifname, int band);

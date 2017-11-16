@@ -40,6 +40,10 @@
 #define	ETHER_ADDR_LEN		6
 #endif
 
+#if defined(RTCONFIG_QCA)
+#include <qca.h>
+#endif
+
 #if (defined(RTCONFIG_RALINK) || defined(RTCONFIG_QCA))
 #else
 #include <wlioctl.h>
@@ -592,13 +596,12 @@ static int test_one_class(const struct ip_mask_s *pt, const struct ip_mask_s *pk
 					if (p->cidr < max_cidr)
 						max_cidr = p->cidr;
 					dbg("\t%08x/%d conflicts, max_cidr %d.\n", p->ip, p->cidr, max_cidr);
+					logmessage("", "\t%08x/%d conflicts, max_cidr %d.\n", p->ip, p->cidr, max_cidr);
 					c++;
 				}
 			}
 
 			if (c == 0) {
-				dbg("Find non-conflicts network %08x/%d for %08x/%d\n",
-					s, i, *exp_ip, exp_cidr);
 				new_ip = s;
 				found = 1;
 				break;
@@ -622,6 +625,8 @@ static int test_one_class(const struct ip_mask_s *pt, const struct ip_mask_s *pk
 		if ((new_ip & m) == (*exp_ip & m))
 			return 0;
 		else {
+			dbg("Find non-conflicts network %08x/%d for %08x/%d\n",
+				s, i, *exp_ip, exp_cidr);
 			// dbg("New IP/mask %08x/%d\n", new_ip, exp_cidr);
 			*exp_ip = new_ip;
 			return 1;
@@ -1110,10 +1115,10 @@ static int get_known_networks(unsigned int nr, struct ip_mask_s *tbl, uint32_t e
  */
 int test_and_get_free_uint_network(int t_class, uint32_t *exp_ip, uint32_t exp_cidr, uint32_t excl)
 {
-	int i, exp_class_idx, r = -1, nr;
+	int i, exp_class_idx, r = -1, nr, may_conflicts = 0;
 	uint32_t m, ip, cidr;
 	const struct ip_mask_s *pv;
-	struct ip_mask_s known_network_tbl[50];
+	struct ip_mask_s known_network_tbl[50], *kn;
 
 	if (!exp_ip || exp_cidr <= 0 || exp_cidr > 30)
 		return -1;
@@ -1140,6 +1145,18 @@ int test_and_get_free_uint_network(int t_class, uint32_t *exp_ip, uint32_t exp_c
 	nr = ARRAY_SIZE(known_network_tbl);
 	memset(known_network_tbl, 0, nr);
 	get_known_networks(--nr, known_network_tbl, excl);   /* leave last elements */
+
+	for (i = 0, kn = &known_network_tbl[0];
+	    i < ARRAY_SIZE(known_network_tbl) && kn->ip && kn->cidr;
+	    ++i, ++kn)
+	{
+		m = min(exp_cidr, kn->cidr);
+		if ((*exp_ip & m) == (kn->ip & m))
+			may_conflicts++;
+	}
+
+	if (!may_conflicts)
+		return 0;
 
 	/* Try class own @exp_ip/@exp_cidr. */
 	if (exp_class_idx >= 0 && exp_class_idx < ARRAY_SIZE(private_network_tbl)) {
@@ -1563,6 +1580,7 @@ int foreach_wif(int include_vifs, void *param,
 
 	i = 0;
 	foreach(name, ifnames, next) {
+		SKIP_ABSENT_FAKE_IFACE(name);
 		if (nvifname_to_osifname(name, ifname, sizeof(ifname)) != 0)
 			continue;
 
@@ -1852,18 +1870,49 @@ int is_intf_up(const char* ifname)
 	return ret;
 }
 
+char *wl_nvprefix(char *prefix, int prefix_size, int unit, int subunit)
+{
+	if(unit < 0)
+		strcpy(prefix, "wl_");
+#ifdef RTCONFIG_LANTIQ
+	else if(client_mode() && unit == nvram_get_int("wlc_band"))
+		snprintf(prefix, prefix_size, "wl%d.%d_", unit, 1);
+#endif
+	else if(subunit > 0)
+		snprintf(prefix, prefix_size, "wl%d.%d_", unit, subunit);
+	else
+		snprintf(prefix, prefix_size, "wl%d_", unit);
+
+	return prefix;
+}
+
 char *wl_nvname(const char *nv, int unit, int subunit)
 {
 	static char tmp[128];
-	char prefix[] = "wlXXXXXXXXXX_";
+	char prefix[] = "wlXXXXXXXXXXXXX_";
 
-	if (unit < 0)
-		strcpy(prefix, "wl_");
-	else if (subunit > 0)
-		snprintf(prefix, sizeof(prefix), "wl%d.%d_", unit, subunit);
-	else
-		snprintf(prefix, sizeof(prefix), "wl%d_", unit);
+	wl_nvprefix(prefix, sizeof(prefix), unit, subunit);
+
 	return strcat_r(prefix, nv, tmp);
+}
+
+char *wl_nband_name(const char *nband)
+{
+	if (!nband || *nband == '\0') {
+		dbg("%s: invalid nband %p\n", __func__, nband);
+		return "2.4 GHz";
+	}
+
+	if (!strcmp(nband, "2"))
+		return "2.4 GHz";
+	else if (!strcmp(nband, "1"))
+		return "5 GHz";
+	else if (!strcmp(nband, "6"))
+		return "60 GHz";
+	else
+		dbg("%s: unknown nband [%s]\n", __func__, nband);
+
+	return "2.4 GHz";
 }
 
 // -----------------------------------------------------------------------------
@@ -2290,7 +2339,7 @@ int backup_rx;
 int backup_tx;
 int backup_set = 0;
 
-unsigned int netdev_calc(char *ifname, char *ifname_desc, unsigned long *rx, unsigned long *tx, char *ifname_desc2, unsigned long *rx2, unsigned long *tx2)		
+unsigned int netdev_calc(char *ifname, char *ifname_desc, unsigned long *rx, unsigned long *tx, char *ifname_desc2, unsigned long *rx2, unsigned long *tx2, char *nv_lan_ifname, char *nv_lan_ifnames)		
 {
 	char word[100], word1[100], *next, *next1;
 	char tmp[100];
@@ -2302,11 +2351,12 @@ unsigned int netdev_calc(char *ifname, char *ifname_desc, unsigned long *rx, uns
 	bcmvlan_models(model, modelvlan);
 
 	// find in LAN interface
-	if(nvram_contains_word("lan_ifnames", ifname))
+	if(strstr(nv_lan_ifnames, ifname))
 	{
 		// find Wireless interface
 		i=0;
 		foreach(word, nvram_safe_get("wl_ifnames"), next) {
+			SKIP_ABSENT_BAND_AND_INC_UNIT(i);
 			if(strcmp(word, ifname)==0) {
 				sprintf(ifname_desc, "WIRELESS%d", i);
 				return 1;
@@ -2404,7 +2454,7 @@ unsigned int netdev_calc(char *ifname, char *ifname_desc, unsigned long *rx, uns
 		return 1;
 	}
 	// find bridge interface
-	else if(nvram_match("lan_ifname", ifname))
+	else if(!strcmp(nv_lan_ifname, ifname))
 	{
 		strcpy(ifname_desc, "BRIDGE");
 		return 1;
@@ -2516,7 +2566,7 @@ int free_caches(const char *clean_mode, const int clean_time, const unsigned int
 	char memdata[256] = {0};
 	unsigned int memfree = 0;
 
-#ifdef RTCONFIG_BCMARM
+#if defined(RTCONFIG_BCMARM) || defined(RTCONFIG_LANTIQ)
 	return 0;
 #endif
 
@@ -2640,7 +2690,7 @@ int is_dpsta(int unit)
 	char ifname[80], name[80], *next;
 	int idx = 0;
 
-	if (nvram_get_int("wlc_dpsta")) {
+	if (nvram_get_int("wlc_dpsta") == 1) {
 		foreach (ifname, nvram_safe_get("wl_ifnames"), next) {
 			if (idx == unit) break;
 			idx++;
@@ -2655,6 +2705,16 @@ int is_dpsta(int unit)
 	return 0;
 }
 #endif
+
+int is_dpsr(int unit)
+{
+	if (nvram_get_int("wlc_dpsta") == 2) {
+		if ((num_of_wl_if() == 2) || !unit || unit == nvram_get_int("dpsta_band"))
+			return 1;
+	}
+
+	return 0;
+}
 
 int is_psta(int unit)
 {
@@ -2688,6 +2748,7 @@ int is_psr(int unit)
 		dpsta_mode() ||
 #endif
 #endif
+		is_dpsr(unit) ||
 		(nvram_get_int("wlc_band") == unit)
 		))
 		return 1;
@@ -2886,10 +2947,12 @@ int get_wifi_unit(char *wif)
 	if (!wif || *wif == '\0')
 		return -1;
 	foreach (word, nvram_safe_get("wl_ifnames"), next) {
+		SKIP_ABSENT_FAKE_IFACE(word);
 		if (strncmp(word, wif, strlen(word)))
 			continue;
 
-		for (i = 0; i <= 2; ++i) {
+		for (i = 0; i <= MAX_NR_WL_IF; ++i) {
+			SKIP_ABSENT_BAND(i);
 			sprintf(nv, "wl%d_ifname", i);
 			ifn = nvram_get(nv);
 			if (ifn != NULL && !strncmp(word, ifn, strlen(word)))
@@ -3143,12 +3206,16 @@ int ctrl_lan_gro(int onoff)
 	strlcat(ifnames, " ", sizeof(ifnames));
 	strlcat(ifnames, nvram_safe_get("lan_ifnames"), sizeof(ifnames));
 	foreach(word, ifnames, next) {
+		SKIP_ABSENT_FAKE_IFACE(word);
 		/* Skip VLAN, TUN, TAP, and Wireless interface. */
 		if (!strncmp(word, "vlan", 4) || !strncmp(word, "tun", 3) || !strncmp(word, "tap", 3)
 #if defined(RTCONFIG_RALINK)
 		    || !strncmp(word, "ra", 2)
 #elif defined(RTCONFIG_QCA)
 		    || !strncmp(word, "ath", 3)
+#if defined(RTCONFIG_WIGIG)
+		    || !strncmp(word, "wlan", 4)
+#endif
 #else
 		    || !strncmp(word, "wl", 2)
 #endif
@@ -3260,35 +3327,233 @@ unsigned int num_of_mssid_support(unsigned int unit)
 	return subunit;
 }
 
-#ifdef RTCONFIG_COOVACHILLI
+/**
+ * Get led_id enumeration via wireless band.
+ * @band:	0 ~ MAX_NR_WL_IF - 1
+ * @return:	led_id enumeration.
+ *  LED_ID_MAX:	led_id for @band is not found.
+ */
+enum led_id get_wl_led_id(int band)
+{
+	enum led_id led = LED_ID_MAX;
+
+	if (band < 0 || band >= MAX_NR_WL_IF)
+		return led;
+
+	switch (band) {
+	case WL_2G_BAND:
+#if defined(PLN12)
+		led = LED_2G_RED;
+#elif defined(PLAC56)
+		led = LED_2G_GREEN;
+#else
+		led = LED_2G;
+#endif
+		break;
+#if defined(RTCONFIG_HAS_5G)
+	case WL_5G_BAND:
+#if defined(PLAC56)
+		led = LED_5G_GREEN;
+#else
+		led = LED_5G;
+#endif
+		break;
+#if defined(RTCONFIG_HAS_5G_2)
+	case WL_5G_2_BAND:
+		led = LED_5G2;
+		break;
+#endif
+#endif
+#if defined(RTCONFIG_WIGIG)
+	case WL_60G_BAND:
+		led = LED_60G;
+		break;
+#endif
+	default:
+		dbg("%s: Unknown wl%d band!\n", __func__, band);
+	}
+
+	return led;
+}
+
+/**
+ * Get led gpio nvram variable name via wireless band.
+ * @band:	0 ~ MAX_NR_WL_IF - 1
+ * @return:	char pointer to a nvram variable name, e.g., led_2g_gpio.
+ *  empty string:	led gpio nvram variable for @band is not found.
+ */
+char *get_wl_led_gpio_nv(int band)
+{
+	char *gpio_nv = "";
+
+	if (band < 0 || band >= MAX_NR_WL_IF)
+		return gpio_nv;
+
+	switch (band) {
+	case WL_2G_BAND:
+		gpio_nv = "led_2g_gpio";
+		break;
+#if defined(RTCONFIG_HAS_5G)
+	case WL_5G_BAND:
+		gpio_nv = "led_5g_gpio";
+		break;
+#if defined(RTCONFIG_HAS_5G_2)
+	case WL_5G_2_BAND:
+		gpio_nv = "led_5g2_gpio";
+		break;
+#endif
+#endif
+#if defined(RTCONFIG_WIGIG)
+	case WL_60G_BAND:
+		gpio_nv = "led_60g_gpio";
+		break;
+#endif
+	default:
+		dbg("%s: Unknown wl%d band!\n", __func__, band);
+	}
+
+	return gpio_nv;
+}
+
+#if defined(RTCONFIG_QCA)
+/**
+ * Return driver name for wpa_supplicant based on wireless band.
+ * @band:	0 ~ MAX_NR_WL_IF
+ * @return:	pointer to driver name of @band.
+ */
+char *get_wsup_drvname(int band)
+{
+	char *r = "";
+
+	if (band < 0 || band >= MAX_NR_WL_IF)
+		return "";
+
+#if !defined(RTCONFIG_HAS_5G_2)
+	if (band == 2)
+		return "";
+#endif
+
+	switch (band) {
+	case WL_2G_BAND:	/* fall-through */
+	case WL_5G_BAND:	/* fall-through */
+	case WL_5G_2_BAND:
+		r = (char*) WSUP_DRV;
+		break;
+	case WL_60G_BAND:
+		r = (char*) WSUP_DRV_60G;
+		break;
+	}
+
+	return r;
+}
+#endif
+
+#ifdef RTCONFIG_TRAFFIC_LIMITER
+static char *traffic_limiter_get_path(const char *type)
+{
+	if (type == NULL)
+		return NULL;
+	else if (strcmp(type, "limit") == 0)
+		return "/jffs/tld/tl_limit";
+	else if (strcmp(type, "alert") == 0)
+		return "/jffs/tld/tl_alert";
+	else if (strcmp(type, "count") == 0)
+		return "/jffs/tld/tl_count";
+
+	return NULL;
+}
+
+unsigned int traffic_limiter_read_bit(const char *type)
+{
+	char *path;
+	char buf[sizeof("4294967295")];
+	unsigned int val = 0;
+
+	path = traffic_limiter_get_path(type);
+	if (path && f_read_string(path, buf, sizeof(buf)) > 0)
+		val = strtoul(buf, NULL, 10);
+
+	TL_DBG("path = %s, val=%u\n", path ? : "NULL", val);
+	return val;
+}
+
+void traffic_limiter_set_bit(const char *type, int unit)
+{
+	char *path;
+	char buf[sizeof("4294967295")];
+	unsigned int val = 0;
+
+	path = traffic_limiter_get_path(type);
+	if (path) {
+		val = traffic_limiter_read_bit(type);
+		val |= (1U << unit);
+		snprintf(buf, sizeof(buf), "%u", val);
+		f_write_string(path, buf, 0, 0);
+	}
+
+	TL_DBG("path = %s, val=%u\n", path ? : "NULL", val);
+}
+
+void traffic_limiter_clear_bit(const char *type, int unit)
+{
+	char *path;
+	char buf[sizeof("4294967295")];
+	unsigned int val = 0;
+
+	path = traffic_limiter_get_path(type);
+	if (path) {
+		val = traffic_limiter_read_bit(type);
+		val &= ~(1U << unit);
+		snprintf(buf, sizeof(buf), "%u", val);
+		f_write_string(path, buf, 0, 0);
+	}
+
+	TL_DBG("path = %s, val=%u\n", path ? : "NULL", val);
+}
+
+double traffic_limiter_get_realtime(int unit)
+{
+	char path[PATH_MAX];
+	char buf[32];
+	double val = 0;
+
+	snprintf(path, sizeof(path), "/tmp/tl%d_realtime", unit);
+	if (f_read_string(path, buf, sizeof(buf)) > 0)
+		val = atof(buf);
+
+	return val;
+}
+#endif
+
+#if defined(RTCONFIG_COOVACHILLI)
 void deauth_guest_sta(char *wlif_name, char *mac_addr)
 {
 #if (defined(RTCONFIG_RALINK) || defined(RTCONFIG_QCA))
-	char cmd[128];
+        char cmd[128];
 
 #if defined(RTCONFIG_RALINK)
-	sprintf(cmd,"iwpriv %s set DisConnectSta=%s", wlif_name, mac_addr);
+        sprintf(cmd,"iwpriv %s set DisConnectSta=%s", wlif_name, mac_addr);
 #elif defined(RTCONFIG_QCA)
 	sprintf(cmd, "iwpriv %s maccmd 2", wlif_name);
-	system(cmd);
+        system(cmd);
 	memset(cmd, 0, sizeof(cmd));
 	sprintf(cmd, "iwpriv %s addmac "MAC_FMT, wlif_name, MAC_ARG(mac_addr));
-	system(cmd);
+        system(cmd);
 	memset(cmd, 0, sizeof(cmd));
-	sprintf(cmd, "iwpriv %s kickmac "MAC_FMT, wlif_name, MAC_ARG(mac_addr));
+        sprintf(cmd, "iwpriv %s kickmac "MAC_FMT, wlif_name, MAC_ARG(mac_addr));
 #endif
-	system(cmd);
+        system(cmd);
 #else /* BCM */
-	int ret;
-	scb_val_t scb_val;
+        int ret;
+        scb_val_t scb_val;
 
-	memcpy(&scb_val.ea, mac_addr, ETHER_ADDR_LEN);
-	scb_val.val = 8; /* reason code: Disassociated because sending STA is leaving BSS */
+        memcpy(&scb_val.ea, mac_addr, ETHER_ADDR_LEN);
+        scb_val.val = 8; /* reason code: Disassociated because sending STA is leaving BSS */
 
-	ret = wl_ioctl(wlif_name, WLC_SCB_DEAUTHENTICATE_FOR_REASON, &scb_val, sizeof(scb_val));
-	if(ret < 0) {
-		printf("[WARNING] error to deauthticate ["MAC_FMT"] !!!\n", MAC_ARG(mac_addr));
-	}
+        ret = wl_ioctl(wlif_name, WLC_SCB_DEAUTHENTICATE_FOR_REASON, &scb_val, sizeof(scb_val));
+        if(ret < 0) {
+                //printf("[WARNING] error to deauthticate ["MAC_FMT"] !!!\n", MAC_ARG(msc_addr));
+        }
 #endif
 }
 
@@ -3336,4 +3601,188 @@ int is_valid_group_id(const char *str)
 	}
 	return 1;
 }
+
+char *if_nametoalias(char *name, char *alias, int alias_len)
+{
+	char prefix[]="wlXXXXXX_", tmp[100];
+	char word[256], *next;
+	int unit = 0;
+	int subunit = 0;
+	int max_mssid = 0;
+	char *ifname = NULL;
+	int found = 0;
+
+	if (!strncmp(name, "2G", 2) || !strncmp(name, "5G", 2)) {
+		snprintf(alias, alias_len, "%s", name);
+		return alias;
+	}
+
+        foreach (word, nvram_safe_get("wl_ifnames"), next) {
+		SKIP_ABSENT_BAND_AND_INC_UNIT(unit);
+		max_mssid = num_of_mssid_support(unit);
+		memset(prefix, 0, sizeof(prefix));
+		snprintf(prefix, sizeof(prefix), "wl%d_", unit);
+		ifname = nvram_get(strcat_r(prefix, "ifname", tmp));
+		subunit = 0;
+
+		if (!strcmp(ifname, name)) {
+			snprintf(alias, alias_len, "%s", unit ? (unit == 2 ? "5G1" : "5G") : "2G");
+			found = 1;
+			break;
+		}
+
+		for (subunit = 1; subunit < max_mssid+1; subunit++) {
+			memset(prefix, 0, sizeof(prefix));
+                        snprintf(prefix, sizeof(prefix), "wl%d.%d_", unit, subunit);
+			ifname = nvram_get(strcat_r(prefix, "ifname", tmp));
+
+			if (!strcmp(ifname, name)) {
+#if defined(CONFIG_BCMWL5) || defined(RTCONFIG_BCMARM)
+				if (nvram_get_int("sw_mode") == SW_MODE_REPEATER
+#if defined(RTCONFIG_PROXYSTA) && defined(RTCONFIG_DPSTA)
+					|| dpsta_mode() || dpsr_mode()
+#endif
+					)
+					snprintf(alias, alias_len, "%s", unit ? (unit == 2 ? "5G1" : "5G") : "2G");
+				else
+#endif
+				snprintf(alias, alias_len, "%s_%d", unit ? (unit == 2 ? "5G1" : "5G") : "2G", subunit);
+				found = 1;
+				break;
+			}
+		}
+
+		if (found)
+			break;
+ 
+		unit++;
+	}
+
+	return alias;
+}
 #endif /* RTCONFIG_CFGSYNC */
+
+#ifdef RTCONFIG_BONDING
+#ifdef HND_ROUTER
+
+#define SYS_BOND_FILE "/proc/net/bonding/bond0"
+#define STR_PARTNER_MAC "Partner Mac Address: "
+
+enum {
+	BS_NOCONFIG,
+	BS_NOPROC,
+	BS_NOLINK,
+	BS_FAIL,
+	BS_OK
+};
+
+char *bs_desc[] = {
+	"option disabled",
+	"no report",
+	"not linked",
+	"not established",
+	"successfully"
+};
+
+int get_bonding_status()
+{
+	FILE *fp;
+	char line[128], *lp, *mp=NULL;
+	int ret = 0;
+
+	if(!nvram_match("lacp_enabled", "1"))
+		return BS_NOCONFIG;
+
+	fp = fopen(SYS_BOND_FILE, "r");
+
+	if(fp != NULL)
+	{
+		while(fgets(line, sizeof(line), fp) != NULL){
+			if((lp = strstr(line, STR_PARTNER_MAC)) != NULL) {
+				mp = lp + strlen(STR_PARTNER_MAC);
+				mp[17] = 0;
+				break;
+			}
+		}
+
+		fclose(fp);
+
+		if(mp == NULL)
+			ret = BS_NOLINK;
+		else if(strncmp(mp, "00:00:00:00:00:00", 17) == 0)
+			ret = BS_FAIL;
+		else
+			ret = BS_OK;
+	} else {
+		ret = BS_NOPROC;
+	}
+
+	return ret;
+}
+
+#endif
+#endif
+
+#ifdef RTCONFIG_LANTIQ
+int ppa_support(int wan_unit)
+{
+	int ret = 1;
+	char wan_proto[16];
+	char tmp[100], prefix[32];
+	int ctf_disable_force = 0 ;
+
+	ctf_disable_force = nvram_get_int("ctf_disable_force");
+
+	/* recover the NAT accelerator*/
+	nvram_set("ctf_disable_force", "0");
+
+#ifdef RTCONFIG_USB_MODEM
+	char modem_type[32];
+	int wan_type = get_dualwan_by_unit(wan_unit);
+	int modem_unit = get_modemunit_by_type(wan_type);
+	char tmp2[100], prefix2[32];
+
+	if(modem_unit < 0)
+		modem_unit = 0;
+
+	usb_modem_prefix(modem_unit, prefix2, sizeof(prefix2));
+	snprintf(modem_type, sizeof(modem_type), "%s", nvram_safe_get(strcat_r(prefix2, "act_type", tmp2)));
+
+	if((wan_type == WANS_DUALWAN_IF_USB || wan_type == WANS_DUALWAN_IF_USB2)
+			&& (!strcmp(modem_type, "tty") || !strcmp(modem_type, "mbim"))
+			)
+	{
+		ret = 0;
+	}
+#endif
+
+	/*
+		1. traditaional qos / bandwidth limiter / disable NAT accelerator
+		2. stop_ppa_wan : debug usage
+	*/
+	if((nvram_get_int("qos_enable") == 1 && (nvram_get_int("qos_type") != 1))
+		|| nvram_match("ctf_disable_force", "1") || nvram_match("stop_ppa_wan", "1"))
+	{
+		ret = 0;
+	}
+
+	snprintf(prefix, sizeof(prefix), "wan%d_", wan_unit);
+	snprintf(wan_proto, sizeof(wan_proto), "%s", nvram_safe_get(strcat_r(prefix, "proto", tmp)));
+
+	if(strcmp(wan_proto, "pptp") == 0) ret = 0;
+	if(strcmp(wan_proto, "l2tp") == 0) ret = 0;
+	if(strcmp(nvram_safe_get(strcat_r(prefix, "hwaddr_x", tmp)), "")) ret = 0;
+	if(ctf_disable_force == 1) ret = 0;
+
+	/* when ppa wan interface removed, show NAT accelerator status */
+	if (ret == 0) {
+		nvram_set("ctf_disable", "1"); // GUI display
+		nvram_set("ctf_disable_force", "1");
+	}
+	else {
+		nvram_set("ctf_disable", "0"); // GUI display
+	}
+
+	return ret;
+}
+#endif

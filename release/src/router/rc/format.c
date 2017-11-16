@@ -4,12 +4,15 @@
 #include <string.h>
 #if defined(RTCONFIG_VPN_FUSION)
 #include <vpnc_fusion.h>
-extern int vpnc_load_profile(VPNC_PROFILE *list, const int list_size);
+extern int vpnc_load_profile(VPNC_PROFILE *list, const int list_size, const int prof_ver);
+#endif
+#if defined(RTCONFIG_NOTIFICATION_CENTER)
+#include <libnt.h>
 #endif
 
 void adjust_url_urlelist(void)
 {
-	char *nv, *nvp, *b, *chk;
+	char *nv, *nvp, *b, *chk, *chkp = NULL;
 	char *url;
 	char  replacebox[2048], rerule[256];
 	int   cnt = 0;
@@ -23,7 +26,7 @@ void adjust_url_urlelist(void)
 	*/
 	memset(replacebox, 0, sizeof(replacebox));
 	while (nvp && (b = strsep(&nvp, "<")) != NULL) {
-		chk = strdup(b);
+		chkp = chk = strdup(b);
 		//dbg("[%s(%d)] %s\n", __FUNCTION__, __LINE__, chk);
 		while( *chk != '\0') {
 			if(*chk == '>') cnt++;
@@ -43,7 +46,8 @@ void adjust_url_urlelist(void)
 	}
 	if (RESAVE) 
 		nvram_set("url_rulelist", replacebox);
-	free(nv);
+	if(nv) free(nv);
+	if(chkp) free(chkp);
 }
 
 void adjust_ddns_config(void)
@@ -60,7 +64,7 @@ void adjust_ddns_config(void)
 
 void adjust_access_restrict_config(void)
 {
-	char *nv, *nvp, *b, *chk;
+	char *nv, *nvp, *b, *chk, *chkp = NULL;
 	char *ipAddr;
 	char *http_list;
 	char *restrict_list;
@@ -85,7 +89,7 @@ void adjust_access_restrict_config(void)
 		*/
 		memset(replacebox, 0, sizeof(replacebox));
 		while (nvp && (b = strsep(&nvp, "<")) != NULL) {
-			chk = strdup(b);
+			chkp = chk = strdup(b);
 			//dbg("[%s(%d)] %s\n", __FUNCTION__, __LINE__, chk);
 			while( *chk != '\0') {
 				if(*chk == '>') cnt++;
@@ -106,7 +110,8 @@ void adjust_access_restrict_config(void)
 		}
 		if (RESAVE) 
 			nvram_set("restrict_rulelist", replacebox);
-		free(nv);
+		if(nv) free(nv);
+		if(chkp) free(chkp);
 	}
 }
 
@@ -174,46 +179,62 @@ static int _find_active_vpnc_id()
 
 void adjust_vpnc_config(void)
 {
-	char *vpnc_clientlist, *vpnc_clientlist_ex, *vpnc_default_wan;
+	char *vpnc_clientlist;
 	char *vpnc_dev_policy_list;
-	int active_id, i, default_wan_idx = 0;
+	int active_id, i, default_wan_idx = 0, flag = 0;
 	char buf[1024];
-	char *nv = NULL, *nvp = NULL, *b = NULL, *mac, *static_ip;
+	char *nv = NULL, *nvp = NULL, *b = NULL, *mac, *static_ip, *desc, *proto, *server, *username, *passwd;
 
+	_dprintf("[%s, %d]\n", __FUNCTION__, __LINE__);
 	vpnc_clientlist = nvram_safe_get("vpnc_clientlist");
 	if(vpnc_clientlist[0] != '\0')
 	{
-		vpnc_prof_cnt_tmp = vpnc_load_profile(vpnc_profile_tmp, MAX_VPNC_PROFILE);
+		vpnc_prof_cnt_tmp = vpnc_load_profile(vpnc_profile_tmp, MAX_VPNC_PROFILE, VPNC_PROFILE_VER1);
 
-		vpnc_clientlist_ex = nvram_safe_get("vpnc_clientlist_ex");
-		vpnc_default_wan = nvram_safe_get("vpnc_default_wan");
-
-		if(vpnc_clientlist_ex[0] == '\0')	//no this attribute
+		if(!vpnc_prof_cnt_tmp)	// there is value in vpnc_clientlist but cannot be parsered. It might be old format.
 		{
+			vpnc_prof_cnt_tmp = vpnc_load_profile(vpnc_profile_tmp, MAX_VPNC_PROFILE, VPNC_PROFILE_VER_OLD);
+		
 			//find active id
 			active_id = _find_active_vpnc_id();
 
+			nv = nvp = strdup(nvram_safe_get("vpnc_clientlist"));
+			i = 0;
 			memset(buf, 0, sizeof(buf));
 			
-			for(i = 0; i < vpnc_prof_cnt_tmp; ++i)
-			{
-				snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), i? "<%d>%d>>": "%d>%d>>", 
-					(i == active_id)? 1: 0, VPNC_UNIT_BASIC + i);
+			while (nv && (b = strsep(&nvp, "<")) != NULL && i <= MAX_VPNC_PROFILE) {
+				if (vstrsep(b, ">", &desc, &proto, &server, &username, &passwd) < 3)
+					continue;
+
+				snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), 
+					i? "<%s>%s>%s>%s>%s>%d>%d": "%s>%s>%s>%s>%s>%d>%d",
+					desc? desc: "",
+					proto? proto: "",
+					server? server: "",
+					username? username: "",
+					passwd? passwd: "",
+					(i == active_id)? 1: 0,
+					VPNC_UNIT_BASIC + i);
+					
 				if(i == active_id)
 				{
 					default_wan_idx = VPNC_UNIT_BASIC + i;
 				}
+				++i;
 			}
+			if(nv) SAFE_FREE(nv);
 			
-			nvram_set("vpnc_clientlist_ex", buf);
+			nvram_set("vpnc_clientlist", buf);
 			snprintf(buf, sizeof(buf), "%d", default_wan_idx);
 			nvram_set("vpnc_default_wan", buf);			
-		}		
+
+			flag = 1;
+		}
 	}
 
 	vpnc_dev_policy_list = nvram_safe_get("vpnc_dev_policy_list");
 	
-	if(vpnc_dev_policy_list[0] == '\0' )	//have dhcp_staticlist but no vpnc_dev_policy_list
+	if(vpnc_dev_policy_list[0] == '\0' || flag)	//have dhcp_staticlist but no vpnc_dev_policy_list
 	{
 		nv = nvp = strdup(nvram_safe_get("dhcp_staticlist"));
 		memset(buf, 0, sizeof(buf));
@@ -223,15 +244,53 @@ void adjust_vpnc_config(void)
 			if (vstrsep(b, ">", &mac, &static_ip) < 2)
 				continue;
 
+#ifdef USE_IPTABLE_ROUTE_TARGE
 			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), i?"<0>%s>>0": "0>%s>>0", mac);
-
+#else
+			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), i?"<0>%s>>0": "0>%s>>0", static_ip);
+#endif
 			++i;
 		}
-		free(nv);
+		if(nv) SAFE_FREE(nv);
 
 		nvram_set("vpnc_dev_policy_list", buf);
 	}
 	
+}
+#endif
+
+#if defined(RTCONFIG_NOTIFICATION_CENTER)
+void force_off_push_msg(void)
+{
+	char *nv, *nvp, *b;
+	char *eID, *eAct, *eType;
+	char  replacebox[4096], rerule[256];
+	int   action;
+	int   RESAVE = OFF;
+	
+	/* force disable push msg. 
+	Format:[<eID>eAction>eType]
+	*/
+	memset(replacebox, 0, sizeof(replacebox));
+	nv = nvp = strdup(nvram_safe_get("nc_setting_conf"));
+	while(nvp)
+	{
+		if ((b = strsep(&nvp, "<")) == NULL) break;
+		if ((vstrsep(b, ">", &eID, &eAct, &eType)) != 3) continue;
+			
+			memset(rerule, 0, sizeof(rerule));
+			action = atoi(eAct);
+			if ((action & ACTION_NOTIFY_APP)) {
+				RESAVE = ON;
+			}
+			NC_ACTION_CLR(action, NC_ACT_APP_BIT);
+			snprintf(rerule, sizeof(rerule), "<%s>%d>%s", eID, action, eType);
+			//dbg("[%s(%d)] %s\n", __FUNCTION__, __LINE__, rerule);
+			strcat(replacebox, rerule);
+	}		
+	if (RESAVE) 
+		nvram_set("nc_setting_conf", replacebox);
+	if(nv) free(nv);
 }
 #endif
 

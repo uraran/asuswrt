@@ -5,6 +5,7 @@ export LINUXDIR := $(SRCBASE)/kernel/linux-4.1
 else
 export LINUXDIR := $(SRCBASE)/linux/linux-2.6
 endif
+export BUILD := $(shell (gcc -dumpmachine))
 
 ifeq ($(RTCONFIG_BCMARM),y)
 
@@ -168,7 +169,9 @@ define platformKernelConfig
 			elif [ "$(BCM9)" = "y" ]; then \
 				echo "do nothing"; \
 			elif [ "$(HND_ROUTER)" = "y" ]; then \
-				echo "do nothing"; \
+				cp -f $(SRCBASE)/router/dpsta/hnd/dpsta.o $(SRCBASE)/router/dpsta/linux; \
+				cp -f $(SRCBASE)/router/dpsta/hnd/dpsta.h $(SRCBASE)/router/dpsta; \
+				cp -f $(SRCBASE)/router/dpsta/hnd/dpsta_linux.h $(SRCBASE)/router/dpsta; \
 			else \
 				if [ "$(ARMCPUSMP)" = "up" ]; then \
 					cp -f $(SRCBASE)/router/dpsta/bcm6_up/dpsta.o $(SRCBASE)/router/dpsta/linux; \
@@ -311,8 +314,6 @@ define platformKernelConfig
 				fi; \
 			fi; \
 			if [ -d $(SRCBASE)/router/wl_arm_7/prebuilt ]; then \
-				mkdir $(SRCBASE)/wl/linux ; \
-				cp $(SRCBASE)/router/wl_arm_7/prebuilt/wl*.o $(SRCBASE)/wl/linux ; \
 				mkdir -p $(SRCBASE)/../../dhd/src/dhd/linux ; \
 				cp $(SRCBASE)/router/wl_arm_7/prebuilt/dhd.o $(SRCBASE)/../../dhd/src/dhd/linux ; \
 			fi; \
@@ -324,6 +325,8 @@ define platformKernelConfig
 			if [ -d $(SRCBASE)/router/wl_arm_7114/prebuilt ]; then \
 				mkdir -p $(SRCBASE)/../dhd/src/dhd/linux ; \
 				cp $(SRCBASE)/router/wl_arm_7114/prebuilt/dhd.o $(SRCBASE)/../dhd/src/dhd/linux ; \
+				mkdir -p $(SRCBASE)/../dhd24/src/dhd/linux ; \
+				cp $(SRCBASE)/router/wl_arm_7114/prebuilt/dhd24.o $(SRCBASE)/../dhd24/src/dhd/linux ; \
 			fi; \
 			if [ -d $(SRCBASE)/router/et_arm_7114/prebuilt ]; then \
 				mkdir -p $(SRCBASE)/et/linux ; \
@@ -389,10 +392,10 @@ define platformKernelConfig
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_arm_irq.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_dt.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_legacy_io_map.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
-				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_thermal.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/blxargs.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/setup.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/ ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_usb.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/bcm_usb$(PRBM_EXT).o ; \
+				cp $(HND_SRC)/router/hnd_extra/prebuilt/bcm_thermal.o $(HND_SRC)/bcmdrivers/opensource/char/plat-bcm/impl1/bcm_thermal$(PRBM_EXT).o ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/rdp_fpm.o $(HND_SRC)/bcmdrivers/opensource/char/fpm/impl1/rdp_fpm$(PRBM_EXT).o ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/rdpa_cmd.o $(HND_SRC)/bcmdrivers/opensource/char/rdpa_drv/impl1/rdpa_cmd$(PRBM_EXT).o ; \
 				cp $(HND_SRC)/router/hnd_extra/prebuilt/rdpa_gpl_ext.o $(HND_SRC)/bcmdrivers/opensource/char/rdpa_gpl_ext/impl1/rdpa_gpl_ext$(PRBM_EXT).o ; \

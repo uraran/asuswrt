@@ -198,7 +198,7 @@ function register_event(){
 
 function initial(){
 	show_menu();
-	if(based_modelid == "GT-AC5300" || based_modelid == "RT-AC1200"){
+	if(based_modelid == "GT-AC5300" || based_modelid == "GT-AC9600" || based_modelid == "RT-AC1200" || based_modelid == "RT-AC1200GU"){
 		$("#nat_desc").hide();
 	}
 
@@ -287,7 +287,7 @@ function gen_mainTable(){
 	code +='<img id="pull_arrow" height="14px;" src="/images/arrow-down.gif" style="position:absolute;" onclick="pullLANIPList(this);" title="<#select_client#>">';
 	code +='<div id="ClientList_Block_PC" style="margin:0 0 0 52px" class="clientlist_dropdown"></div></td>';
 	code +='<td style="border-bottom:2px solid #000;">--</td>';
-	code +='<td style="border-bottom:2px solid #000;"><input class="url_btn" type="button" onClick="addRow_main(16)" value=""></td></tr>';
+	code +='<td style="border-bottom:2px solid #000;"><input class="add_btn" type="button" onClick="addRow_main(16)" value=""></td></tr>';
 	if(MULTIFILTER_DEVICENAME == "" && MULTIFILTER_MAC == "")
 		code +='<tr><td style="color:#FFCC00;" colspan="4"><#IPConnection_VSList_Norule#></td>';
 	else{
@@ -339,7 +339,7 @@ function gen_mainTable(){
 			code += '</td></tr></table>';
 			code +='</td>';
 
-			code +='<td><input class=\"service_btn\" type=\"button\" onclick=\"gen_lantowanTable('+i+');" value=\"\"/></td>';
+			code +='<td><input class=\"edit_btn\" type=\"button\" onclick=\"gen_lantowanTable('+i+');" value=\"\"/></td>';
 			code +='<td><input class=\"remove_btn\" type=\"button\" onclick=\"deleteRow_main(this, \''+MULTIFILTER_MAC_row[i]+'\');\" value=\"\"/></td>';
 		}
 	}
@@ -517,17 +517,17 @@ function gen_lantowanTable(client){
 	redraw_selected_time(MULTIFILTER_MACFILTER_DAYTIME_col);
 	
 	var code_temp = "";
-	code_temp = '<table style="width:350px;margin-left:-200px;"><tr>';
-	code_temp += "<td><div style=\"width:95px;font-family:Arial,sans-serif,Helvetica;font-size:18px;\"><#Clock_Format#></div></td>";
+	code_temp = '<table><tr>';
+	code_temp += "<td><div style=\"font-family:Arial,sans-serif,Helvetica;font-size:18px;margin:0px 5px 0 10px\"><#Clock_Format#></div></td>";
 	code_temp += '<td><div>';
 	code_temp += '<select id="clock_type_select" class="input_option" onchange="change_clock_type(this.value);">';
 	code_temp += '<option value="0" >12-hour</option>';
 	code_temp += '<option value="1" >24-hour</option>';
 	code_temp += '</select>';
 	code_temp += '</div></td>';
-	code_temp += '<td><div align="left" style="font-family:Arial,sans-serif,Helvetica;font-size:18px;margin:0px 5px 0px 30px;">Allow</div></td>';
+	code_temp += '<td><div align="left" style="font-family:Arial,sans-serif,Helvetica;font-size:18px;margin:0px 5px 0 10px"><#ParentalCtrl_allow#></div></td>';
 	code_temp += '<td><div style="width:90px;height:20px;background:#9CB2BA;"></div></td>';
-	code_temp += '<td><div align="left" style="font-family:Arial,sans-serif,Helvetica;font-size:18px;margin:0px 5px 0px 30px;">Deny</div></td>';
+	code_temp += '<td><div align="left" style="font-family:Arial,sans-serif,Helvetica;font-size:18px;margin:0px 5px 0 10px"><#ParentalCtrl_deny#></div></td>';
 	code_temp += '<td><div style="width:90px;height:20px;border:solid 1px #000"></div></td>';
 	code_temp += '</tr></table>';
 	document.getElementById('hintBlock').innerHTML = code_temp;

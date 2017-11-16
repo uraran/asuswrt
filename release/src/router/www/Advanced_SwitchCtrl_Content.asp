@@ -52,7 +52,6 @@ function initial(){
 	if(lacp_support){
 		document.getElementById("lacp_tr").style.display = "";
 		if(lacp_enabled && bonding_policy_support){
-			document.getElementById("lacp_policy_tr").style.display = "";
 			document.form.bonding_policy.value = bonding_policy_value;
 			check_bonding_policy(document.form.lacp_enabled);
 			document.getElementById("lacp_desc").style.display = "";
@@ -128,19 +127,35 @@ function applyRule(){
 		document.form.action_script.value = "restart_net_and_phy";
 		document.form.action_wait.value = "35";
 	}
+
+	if(lantiq_support){
+		document.form.action_script.value = "restart_wan_if;restart_firewall";
+		document.form.action_wait.value = "10";
+	
+		if(!setting_changed){	// only change the bonding policy
+			document.form.action_script.value += ";restart_net_and_phy";
+			document.form.action_wait.value = "35";
+		}
+	}
 	
 	showLoading();
-	document.form.submit();	
+	document.form.submit();
 }
 
 function check_bonding_policy(obj){
 	if(obj.value == "1"){
-		document.getElementById("lacp_policy_tr").style.display = "";
+		if(based_modelid == "GT-AC5300" || based_modelid == "RT-AC86U"){
+			document.getElementById("lacp_policy_tr").style.display = "";
+		}
+		
 		document.form.bonding_policy.disabled = false;
 		document.getElementById("lacp_desc").style.display = "";
 	}
 	else{
-		document.getElementById("lacp_policy_tr").style.display = "none";
+		if(based_modelid == "GT-AC5300" || based_modelid == "RT-AC86U"){
+			document.getElementById("lacp_policy_tr").style.display = "none";
+		}
+		
 		document.form.bonding_policy.disabled = true;
 		document.getElementById("lacp_desc").style.display = "none";
 	}

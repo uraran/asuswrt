@@ -242,17 +242,17 @@ function check_weakness(){
 	if(danger_count != 0){
 		$("#router_scan_count").html(danger_count);
 		$("#router_scan_count").css("backgroundColor", "#ED1C24");
-		$("#router_scan_state").html("Danger");
+		$("#router_scan_state").html("<#AiProtection_scan_rDanger#>");
 	}
 	else if(risk_count != 0){
 		$("#router_scan_count").html(risk_count);
 		$("#router_scan_count").css("backgroundColor", "#EF9800");
-		$("#router_scan_state").html("Risk");
+		$("#router_scan_state").html("<#AiProtection_scan_rRisk#>");
 	}
 	else if(safe_count != 0){
 		$("#router_scan_count").html(safe_count);
 		$("#router_scan_count").css("backgroundColor", "#24A628");
-		$("#router_scan_state").html("Safe");
+		$("#router_scan_state").html("<#AiProtection_scan_rSafe#>");
 	}
 }
 
@@ -705,16 +705,40 @@ function check_TM_feature(){
 
 function show_tm_eula(){
 	if(document.form.preferred_lang.value == "JP"){
-			$.get("JP_tm_eula.htm", function(data){
-				document.getElementById('agreement_panel').innerHTML= data;
-				adjust_TM_eula_height("agreement_panel");
-			});
+		$.get("JP_tm_eula.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
 	}
+	else if(document.form.preferred_lang.value == "TW"){
+		$.get("tm_eula_TC.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
+	}
+	else if(document.form.preferred_lang.value == "CN"){
+		$.get("tm_eula_SC.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
+	}
+	else if(document.form.preferred_lang.value == "FR"){
+		$.get("tm_eula_FR.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
+	}
+	else if(document.form.preferred_lang.value == "RU"){
+		$.get("tm_eula_RU.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
+	}																			
 	else{
-			$.get("tm_eula.htm", function(data){
-				document.getElementById('agreement_panel').innerHTML= data;
-				adjust_TM_eula_height("agreement_panel");
-			});
+		$.get("tm_eula.htm", function(data){
+			document.getElementById('agreement_panel').innerHTML= data;
+			adjust_TM_eula_height("agreement_panel");
+		});
 	}
 	dr_advise();
 	cal_panel_block("agreement_panel", 0.25);
@@ -1026,7 +1050,7 @@ function shadeHandle(flag){
 						</td>
 					</tr>
 					<tr>
-						<th>Notification Item</th>
+						<th><#Notification_Item#></th>
 						<td>
 							<div>							
 								<input type="checkbox" class="" id="mal_website_item" value="">
@@ -1129,7 +1153,7 @@ function shadeHandle(flag){
 													<table>
 														<tr>
 															<td>
-																<div style="width:430px">Game IPS with Trend Micro protects against network exploit to secure your network from malicious access, ransomware or cybercriminal attakcs.</div>
+																<div style="width:430px"><#AiProtection_HomeDesc2#></div>
 																<div style="width:430px"><a style="text-decoration:underline;" href="http://www.asus.com/support/FAQ/1008719/" target="_blank"><#AiProtection_title#> FAQ</a></div>
 															</td>
 															<td>
@@ -1222,7 +1246,7 @@ function shadeHandle(flag){
 												<td style="padding:10px;cursor:pointer;" onclick="location.href='AiProtection_MaliciousSitesBlocking.asp'">
 													<div>
 														<div style="font-size:18px;text-shadow:1px 1px 0px black;"><#AiProtection_sites_blocking#></div>
-														<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;padding-top:5px;">Malicious Sites Blocking restricts access to known malicious websites to prevent malware, phishing, spam, adware, hacking or ransomware from attacking your network device.</div>
+														<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;padding-top:5px;"><#AiProtection_sites_block_desc#></div>
 													</div>								
 												</td>
 												 <td width="6px">
@@ -1256,7 +1280,7 @@ function shadeHandle(flag){
 														<div id="mals_count_shade" style="position:absolute;width:140px;height:115px;background-color:#505050;opacity:0.6;z-index:5;margin-top:-25px;display:none"></div>
 														<div style="text-align:center;">
 															<div id="mali_count" style="width:45px;height:45px;margin:0 auto;line-height: 45px;font-size:38px;color:#FC0;text-shadow:1px 1px 0px black"></div>
-															<div style="font-size: 16px;">Hits</div>
+															<div style="font-size: 16px;"><#AiProtection_scan_rHits#></div>
 															<div id="mali_time" style="color:#A1A7A8"></div>
 														</div>
 													</div>
@@ -1275,7 +1299,7 @@ function shadeHandle(flag){
 												<td style="padding:10px;cursor:pointer;" onclick="location.href='AiProtection_IntrusionPreventionSystem.asp'">
 													<div>
 														<div style="font-size:18px;text-shadow:1px 1px 0px black;"><#AiProtection_two-way_IPS#></div>
-														<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;padding-top:5px;">Two-Way IPS (Intrusion Prevention System) prevents Spam or DDoS from attacking Internet device and blocks malicious incoming packets to protect router from network vulnerability attacks like Shellshocked, Heartbleed, Bitcoin mining and Ransomware attack ; And also detects suspicious outgoing packets to find infected device out, and then prevent from being enslaved by Botnets.</div>
+														<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;padding-top:5px;"><#AiProtection_two-way_IPS_desc#></div>
 													</div>								
 												</td>
 												 <td width="6px">
@@ -1309,7 +1333,7 @@ function shadeHandle(flag){
 														<div id="vp_count_shade" style="position:absolute;width:140px;height:115px;background-color:#505050;opacity:0.6;z-index:5;margin-top:-25px;display:none"></div>
 														<div style="text-align:center;">
 															<div id="vp_count" style="width:45px;height:45px;margin:0 auto;line-height: 45px;font-size:38px;color:#FC0;text-shadow:1px 1px 0px black"></div>
-															<div style="font-size: 16px;">Hits</div>
+															<div style="font-size: 16px;"><#AiProtection_scan_rHits#></div>
 															<div id="vp_time" style="color:#A1A7A8"></div>
 														</div>
 													</div>
@@ -1326,7 +1350,7 @@ function shadeHandle(flag){
 												</td>
 												<td style="padding:10px;cursor:pointer" onclick="location.href='AiProtection_InfectedDevicePreventBlock.asp'">
 													<div style="font-size:18px;text-shadow:1px 1px 0px black;"><#AiProtection_detection_blocking#></div>
-													<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;;padding-top:5px;">Infected Device Prevention and Blocking prevents infected network device from being enslaved by Botnets or Zombies, and stealing your sensitive information or attacking other computers.</div>
+													<div style="font-style: italic;font-size: 14px;color:#FC0;height:auto;;padding-top:5px;"><#AiProtection_detection_block_desc#></div>
 												</td>
 												 <td>
 													<div><img src="/images/line.png"></div>
@@ -1359,7 +1383,7 @@ function shadeHandle(flag){
 														<div id="infected_count_shade" style="position:absolute;width:140px;height:115px;background-color:#505050;opacity:0.6;z-index:5;margin-top:-25px;display:none"></div>
 														<div style="text-align:center;">
 															<div id="infected_count" style="width:45px;height:45px;margin:0 auto;line-height: 45px;font-size:38px;color:#FC0;text-shadow:1px 1px 0px black"></div>
-															<div style="font-size: 16px;">Hits</div>
+															<div style="font-size: 16px;"><#AiProtection_scan_rHits#></div>
 															<div id="infected_time" style="color:#A1A7A8"></div>
 														</div>
 													</div>

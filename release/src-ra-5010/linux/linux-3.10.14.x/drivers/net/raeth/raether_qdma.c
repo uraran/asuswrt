@@ -760,12 +760,16 @@ inline int rt2880_eth_send(struct net_device* dev, struct sk_buff *skb, int gmac
 	}else {
 		cpu_ptr->txd_info4.FPORT = 2;
 	}
+#if 0	 //ASUS_EXT
 	if (skb->mark < 64)
 		cpu_ptr->txd_info3.QID = M2Q_table[skb->mark];
 	else{
 		printk("skb->mark out of range\n");
 		cpu_ptr->txd_info3.QID = 0;
 	}
+#else
+	cpu_ptr->txd_info3.QID = M2Q_table[skb->mark];
+#endif	
 
 #ifdef CONFIG_PSEUDO_SUPPORT
 	if((lan_wan_separate==1) && (gmac_no==2)){
@@ -936,12 +940,16 @@ inline int rt2880_eth_send(struct net_device* dev, struct sk_buff *skb, int gmac
 	}
 	
 	cpu_ptr->txd_info4.TSO = 0;
+#if 0	 //ASUS_EXT	
 	if (skb->mark < 64)
 		cpu_ptr->txd_info3.QID = M2Q_table[skb->mark];
 	else{
 		printk("skb->mark out of range\n");
 		cpu_ptr->txd_info3.QID = 0;
 	}
+#else
+	cpu_ptr->txd_info3.QID = M2Q_table[skb->mark]; 
+#endif	
 
 #ifdef CONFIG_PSEUDO_SUPPORT //web UI used tso
 	if((lan_wan_separate==1) && (gmac_no==2)){
@@ -1067,12 +1075,16 @@ inline int rt2880_eth_send(struct net_device* dev, struct sk_buff *skb, int gmac
 
 				//3. Update TXD info
 				cpu_ptr = (ei_local->txd_pool + (ctx_offset));
+#if 0  //ASUS_EXT				
 				if (skb->mark < 64)
 					cpu_ptr->txd_info3.QID = M2Q_table[skb->mark];
 				else{
 					printk("skb->mark out of range\n");
 					cpu_ptr->txd_info3.QID = 0;
 				}
+#else
+				cpu_ptr->txd_info3.QID = M2Q_table[skb->mark];
+#endif				
 
 #ifdef CONFIG_PSEUDO_SUPPORT //QoS Web UI used , nr_frags
 				if((lan_wan_separate==1) && (gmac_no==2)){

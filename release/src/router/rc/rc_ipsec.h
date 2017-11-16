@@ -67,6 +67,7 @@ typedef enum vpn_type_s{
 typedef enum flag_type_s{
     FLAG_IKE_ENCRYPT,
     FLAG_ESP_HASH,
+    FLAG_DH_GROUP,
     FLAG_KEY_CHAG_VER,
     FLAG_NONE,
 }flag_type_t;
@@ -185,6 +186,11 @@ typedef struct ipsec_prof_s{
     uint16_t keyingtries;
 	char samba_settings[SZ_64BUF];
     uint8_t ipsec_conn_en;  /*1: up ; 0:down*/
+	uint16_t encryption_p1_ext;
+	uint16_t hash_p1_ext;
+	uint16_t dh_group;
+	uint16_t encryption_p2_ext;
+	uint16_t hash_p2_ext;
 }ipsec_prof_t;
 
 
@@ -196,7 +202,18 @@ typedef struct pki_ca_s{
 }pki_ca_t;
 
 extern void rc_ipsec_config_init();
-extern void rc_ipsec_topology_set();
+
+#if defined(RTCONFIG_QUICKSEC)
+typedef struct qs_virtual_ip_s{
+    char ip_start[SZ_MIN];
+    char ip_end[SZ_MIN];
+    char subnet[SZ_MIN];
+}qs_virtual_ip_t;
+
+//extern void *get_virtual_ip_format(char *virtual_subnet);
+extern void rc_ipsec_topology_set_XML();
+#endif
+
 extern void rc_ipsec_set(ipsec_conn_status_t conn_status, ipsec_prof_type_t prof_type);
 
 extern void rc_ipsec_ca_import();

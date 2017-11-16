@@ -35,8 +35,19 @@ echo ">"
 echo "dualwan nvram:>"
 nvram show |grep ^wans_
 echo ">"
+echo "IPv6 service:>"
+nvram get ipv6_service
+echo ">"
+echo "link state:>"
+nvram show |grep ^link_
+echo ">"
 echo "wan state:>"
 nvram show |grep state |grep wan[01]_
+echo ">"
+echo "usb path nvram:>"
+nvram show |grep ^usb_path1
+nvram show |grep ^usb_path2
+nvram show |grep ^usb_path3
 echo ">"
 echo "modem nvram:>"
 nvram get Dev3G
@@ -78,20 +89,36 @@ for modem_unit in 0 1; do
 	echo "${prefix}act_pid=$str"
 	str=`nvram get ${prefix}act_sim`
 	echo "${prefix}act_sim=$str"
+	str=`nvram get ${prefix}act_simdetect`
+	echo "${prefix}act_simdetect=$str"
 	str=`nvram get ${prefix}act_signal`
 	echo "${prefix}act_signal=$str"
+	str=`nvram get ${prefix}act_lac`
+	echo "${prefix}act_lac=$str"
+	str=`nvram get ${prefix}act_rsrq`
+	echo "${prefix}act_rsrq=$str"
+	str=`nvram get ${prefix}act_rsrp`
+	echo "${prefix}act_rsrp=$str"
+	str=`nvram get ${prefix}act_rssi`
+	echo "${prefix}act_rssi=$str"
+	str=`nvram get ${prefix}act_sinr`
+	echo "${prefix}act_sinr=$str"
+	str=`nvram get ${prefix}act_band`
+	echo "${prefix}act_band=$str"
 	str=`nvram get ${prefix}act_operation`
 	echo "${prefix}act_operation=$str"
+	str=`nvram get ${prefix}act_provider`
+	echo "${prefix}act_provider=$str"
 	str=`nvram get ${prefix}act_imsi |cut -c '1-6'`
 	echo "${prefix}act_imsi=$str"
 	str=`nvram get ${prefix}act_tx`
 	echo "${prefix}act_tx=$str"
 	str=`nvram get ${prefix}act_rx`
 	echo "${prefix}act_rx=$str"
+	str=`nvram get ${prefix}act_swver`
+	echo "${prefix}act_swver=$str"
 	str=`nvram get ${prefix}act_hwver`
 	echo "${prefix}act_hwver=$str"
-	str=`nvram get ${prefix}act_band`
-	echo "${prefix}act_band=$str"
 	str=`nvram get ${prefix}act_scanning`
 	echo "${prefix}act_scanning=$str"
 	str=`nvram get ${prefix}act_auth`
@@ -102,6 +129,8 @@ for modem_unit in 0 1; do
 	echo "${prefix}act_auth_puk=$str"
 	str=`nvram get ${prefix}act_startsec`
 	echo "${prefix}act_startsec=$str"
+	str=`nvram get ${prefix}act_ip`
+	echo "${prefix}act_ip=$str"
 	echo ">"
 	echo "modem autoapn:>"
 	nvram show |grep ^${prefix}auto

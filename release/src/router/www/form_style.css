@@ -1526,6 +1526,16 @@ padding-top:1px;
 	cursor: pointer;
 }
 /*Viz add 2014.10 for adsl diag status      end*/
+.dblogdiag{
+	background-image:url(images/New_ui/dblog_diag.gif);
+	background-repeat:no-repeat;
+	height:30px;
+	width:30px;
+	cursor: pointer;
+	background-size: 70%;
+	background-position: 50%;
+	display: none;
+}
 .printstatuson{
 	background-image:url(images/New_ui/printstatus.png);
 	background-repeat:no-repeat;	
@@ -2263,4 +2273,9 @@ padding-top:1px;
 	z-index: 2000;
 	border: 3px solid #4D5C63;
 	border-radius: 4px;
+}
+
+#bottom_border{
+	border-bottom:5px #2A3539 solid;
+	padding:5px 10px 5px 10px;
 }

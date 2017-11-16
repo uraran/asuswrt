@@ -281,7 +281,7 @@ function showDSLWANList(){
 							cell[4].style.color = "white";
 
 							cell[5] = addRow.insertCell(5);
-							cell[5].innerHTML = '<center><span style="cursor:pointer;" onclick="chg_pvc_0();"><img src="/images/New_ui/accountedit.png"></span></center>';
+							cell[5].innerHTML = '<center><span style="cursor:pointer;" onclick="chg_pvc_0();"><input class="edit_btn"></span></center>';
 							cell[5].style.color = "white";
 
 							cell[6] = addRow.insertCell(6);
@@ -311,7 +311,6 @@ function showDSLWANList(){
 							cell[4].innerHTML = '<center><img src=images/checked.gif border=0></center>';
 							cell[4].style.color = "white";
 							cell[5] = addRow.insertCell(5);
-							//cell[5].innerHTML = '<center><span style="cursor:pointer;" onclick="chg_pvc_sub('+i.toString()+')"><img src="/images/New_ui/accountedit.png"></span></center>';
 							cell[5].innerHTML = "";
 							cell[5].style.color = "white";
 							cell[6] = addRow.insertCell(6);
@@ -1295,7 +1294,7 @@ function pass_checked(obj){
 										</tr>
 										<tr>
 											<th>
-												<a class="hintstyle" href="javascript:void(0);" onClick="openHint(7,18);">Host-Uniq (Hexadecimal)</a><!--untranslated-->
+												<a class="hintstyle" href="javascript:void(0);" onClick="openHint(7,18);">Host-Uniq (<#Hexadecimal#>)</a>
 											</th>
 											<td align="left">
 												<input type="text" maxlength="32" class="input_32_table" name="dslx_pppoe_hostuniq" value="<% nvram_get("dslx_pppoe_hostuniq"); %>" onkeypress="return validator.isString(this, event);" autocorrect="off" autocapitalize="off"/>

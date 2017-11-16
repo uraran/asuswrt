@@ -79,21 +79,27 @@
 <script type="text/javascript" src="/popup.js"></script>
 <script language="JavaScript" type="text/javascript" src="/js/jquery.js"></script>
 <script>
-var isFirst = ('<% nvram_get("x_Setting"); %>' == '1') ? false : true;;
+var isFirst = ('<% nvram_get("x_Setting"); %>' == '1') ? false : true;
 var header_info = [<% get_header_info(); %>][0];
 var ROUTERHOSTNAME = '<% nvram_get("local_domain"); %>';
 var domainNameUrl = ((header_info.host.split(":").length==2)?"https":"http")+"://"+header_info.host.replace(header_info.host.split(":")[0], ROUTERHOSTNAME);
-var iAmAlive = function(ret){if(ret.isdomain) window.location.href=domainNameUrl};
+var chdom = function(){window.location.href=domainNameUrl};
 (function(){
 	if(ROUTERHOSTNAME !== header_info.host && ROUTERHOSTNAME != "" && isFirst){
 		setTimeout(function(){
-			var s=document.createElement("script");s.type="text/javascript";s.src=domainNameUrl+"/httpd_check.json?hostname="+header_info.host.split(":")[0];var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(s,h);
+			var s=document.createElement("script");s.type="text/javascript";s.src=domainNameUrl+"/chdom.json?hostname="+header_info.host.split(":")[0];var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(s,h);
 		}, 1);
 	}
 })();
 
 var sw_mode = '<% nvram_get("sw_mode"); %>';
 var based_modelid = '<% nvram_get("productid"); %>';
+// parsing rc_support
+var rc_support = '<% nvram_get("rc_support"); %>';
+function isSupport(_ptn){
+	return (rc_support.search(_ptn) == -1) ? false : true;
+}
+var spirit_logo_support = isSupport("spirit");
 if(((sw_mode == 2 || sw_mode == 3) && '<% nvram_get("wlc_psta"); %>' == 1) || (sw_mode == 3 && '<% nvram_get("wlc_psta"); %>' == 3))
 	sw_mode = 4;
 if(sw_mode == 3 && '<% nvram_get("wlc_psta"); %>' == 2)
@@ -104,12 +110,12 @@ var pppoe_failed_flag = false;
 if(isMobile() && tmo_support && sw_mode != 2 && qisFlag != "sitesurvey_rep" && qisFlag != "sitesurvey_mb")
 	location.href = "MobileQIS_Login.asp";
 
-if(isMobile() && (based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300")){
+if(isMobile() && (based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || based_modelid == "GT-AC9600")){
 	location.href = "QIS_wizard_m.htm" + ((qisFlag !== "") ? "?flag="+qisFlag : "");
 }
 	
 var parent_macaddr = '<% nvram_get("lan_hwaddr"); %>';
-
+var nz_isp_support = isSupport("nz_isp");
 var isRepeater = true;
 var reduced_internet_type = "disable";
 var targeturl = "/index.htm";
@@ -153,6 +159,73 @@ var rebootTime = eval("<% get_default_reboot_time(); %>");
 
 var wan_autodet_state = "";
 var usb_connected = 0;
+
+var wans_dualwan = '<% nvram_get("wans_dualwan"); %>'.split(" ");
+if(wans_dualwan[0].indexOf("wan") != -1  && wans_dualwan[1].indexOf("wan") != -1)
+	var dual_ewan = true;
+else
+	var dual_ewan = false;
+
+var cur_wan_unit = 0;
+
+
+var htmlEnDeCode = (function() {
+	var charToEntityRegex,
+		entityToCharRegex,
+		charToEntity,
+		entityToChar;
+
+	function resetCharacterEntities() {
+		charToEntity = {};
+		entityToChar = {};
+		// add the default set
+		addCharacterEntities({
+		'&amp;'		: 	'&',
+		'&gt;'		: 	'>',
+		'&lt;'		: 	'<',
+		'&quot;'	: 	'"',
+		'&#39;'		: 	"'"
+		});
+	}
+
+	function addCharacterEntities(newEntities) {
+		var charKeys = [],
+		entityKeys = [],
+		key, echar;
+		for (key in newEntities) {
+			echar = newEntities[key];
+			entityToChar[key] = echar;
+			charToEntity[echar] = key;
+			charKeys.push(echar);
+			entityKeys.push(key);
+		}
+		charToEntityRegex = new RegExp('(' + charKeys.join('|') + ')', 'g');
+		entityToCharRegex = new RegExp('(' + entityKeys.join('|') + '|&#[0-9]{1,5};' + ')', 'g');
+	}
+
+	function htmlEncode(value){
+		var htmlEncodeReplaceFn = function(match, capture) {
+			return charToEntity[capture];
+		};
+
+		return (!value) ? value : String(value).replace(charToEntityRegex, htmlEncodeReplaceFn);
+	}
+
+	function htmlDecode(value) {
+		var htmlDecodeReplaceFn = function(match, capture) {
+			return (capture in entityToChar) ? entityToChar[capture] : String.fromCharCode(parseInt(capture.substr(2), 10));
+		};
+
+		return (!value) ? value : String(value).replace(entityToCharRegex, htmlDecodeReplaceFn);
+	}
+
+	resetCharacterEntities();
+
+	return {
+		htmlEncode: htmlEncode,
+		htmlDecode: htmlDecode
+	};
+})();
 
 function add_options_x2(o, arr, varr, orig){
 	free_options(o);
@@ -272,16 +345,24 @@ function QIS_load_body(){
 	}
 
 	winW_H();
-	if(based_modelid == "GT-AC5300"){
+	if(based_modelid == "GT-AC5300" || based_modelid == "GT-AC9600"){
 		document.getElementById("logo").src = "images/New_ui/logo_ROG.png"
 		document.getElementById("logo").style.width = "358px"
 		document.getElementById("logo").style.height = "86px"
 	}
-	
+	else if(spirit_logo_support){
+		document.getElementById("logo").src = "images/New_ui/asus_spirit_title.png";
+		document.getElementById("logo").style.width = "214px";
+		document.getElementById("logo").style.height = "31px";
+		document.getElementById("logo").style.marginTop = "13px";
+		document.getElementById("logo").style.marginLeft = "30px";
+		document.getElementById("title_name").style.display = "none";
+	}
+
 	document.getElementById("language_menu").innerHTML = '<% shown_language_css(); %>';
 	show_selected_language();
 	
-	if((based_modelid == "4G-AC55U" || based_modelid == "4G-AC68U") && sim_state == "1" && modem_autoapn == "1" && usb_modem_auto_spn.length == 0)
+	if((based_modelid == "4G-AC53U" || based_modelid == "4G-AC55U" || based_modelid == "4G-AC68U") && sim_state == "1" && modem_autoapn == "1" && usb_modem_auto_spn.length == 0)
 		update_apn_progress();
 	else
 		document.getElementById("apn_div").style.display = "none";	
@@ -291,7 +372,50 @@ function QIS_load_body(){
 			document.QKform.sw_mode.value = 4;
 	}
 
-	if(based_modelid == "MAP-AC1300" || based_modelid == "MAP-AC2200"){
+	if(dual_ewan){
+		document.QKform.wan_proto.disabled = true;
+		document.QKform.wan_dhcpenable_x.disabled = true;
+		document.QKform.wan_ipaddr_x.disabled = true;
+		document.QKform.wan_netmask_x.disabled = true;
+		document.QKform.wan_gateway_x.disabled = true;
+		document.QKform.wan_heartbeat_x.disabled = true;
+		document.QKform.wan_dnsenable_x.disabled = true;
+		document.QKform.wan_dns1_x.disabled = true;
+		document.QKform.wan_dns2_x.disabled = true;
+		document.QKform.wan_hostname.disabled = true;
+		document.QKform.wan_hwaddr_x.disabled = true;
+		document.QKform.wan_pppoe_username.disabled = true;
+		document.QKform.wan_pppoe_passwd.disabled = true;
+	}
+	else{
+		document.QKform.wan0_proto.disabled = true;
+		document.QKform.wan0_dhcpenable_x.disabled = true;
+		document.QKform.wan0_ipaddr_x.disabled = true;
+		document.QKform.wan0_netmask_x.disabled = true;
+		document.QKform.wan0_gateway_x.disabled = true;
+		document.QKform.wan0_heartbeat_x.disabled = true;
+		document.QKform.wan0_dnsenable_x.disabled = true;
+		document.QKform.wan0_dns1_x.disabled = true;
+		document.QKform.wan0_dns2_x.disabled = true;
+		document.QKform.wan0_hostname.disabled = true;
+		document.QKform.wan0_hwaddr_x.disabled = true;
+		document.QKform.wan0_pppoe_username.disabled = true;
+		document.QKform.wan0_pppoe_passwd.disabled = true;
+		document.QKform.wan1_proto.disabled = true;
+		document.QKform.wan1_dhcpenable_x.disabled = true;
+		document.QKform.wan1_ipaddr_x.disabled = true;
+		document.QKform.wan1_netmask_x.disabled = true;
+		document.QKform.wan1_gateway_x.disabled = true;
+		document.QKform.wan1_heartbeat_x.disabled = true;
+		document.QKform.wan1_dnsenable_x.disabled = true;
+		document.QKform.wan1_dns1_x.disabled = true;
+		document.QKform.wan1_dns2_x.disabled = true;
+		document.QKform.wan1_hostname.disabled = true;
+		document.QKform.wan1_hwaddr_x.disabled = true;
+		document.QKform.wan1_pppoe_username.disabled = true;
+		document.QKform.wan1_pppoe_passwd.disabled = true;
+	}
+	if(based_modelid == "MAP-AC1300" || based_modelid == "MAP-AC2200" || based_modelid == "VZW-AC1300"){
 		document.getElementById("QIS_wizard_menu").style.display = "none";
 		document.getElementById("qis_menu").style.marginTop = "-160px";
 	}
@@ -319,34 +443,62 @@ function QIS_load_body(){
 				action = "/qis/QIS_internet_ip.htm";
 				flag.value = showCase;
 				submit();
-				break;				
+				break;
 			case "verify_detect":
 				action = "/qis/QIS_verify_detect.htm";
 				flag.value = showCase;
 				submit();
-				break;				
+				break;
 			case "adv_ap_mode":
 				document.QKform.sw_mode.value = "3";
 				action = "/qis/QIS_lanip.htm";
 				submit();
-				break;				
+				break;
 			case "pppoe":
-				document.QKform.wan_proto.value = "pppoe";			
+				if(dual_ewan){
+					if(cur_wan_unit == 0)
+						document.QKform.wan0_proto.value = "pppoe";
+					else
+						document.QKform.wan1_proto.value = "pppoe";
+				}
+				else
+					document.QKform.wan_proto.value = "pppoe";
 				action = "/qis/QIS_internet_account.htm";
 				submit();
-				break;				
+				break;
 			case "pptp":
-				document.QKform.wan_proto.value = "pptp";			
+				if(dual_ewan){
+					if(cur_wan_unit == 0)
+						document.QKform.wan0_proto.value = "pptp";
+					else
+						document.QKform.wan1_proto.value = "pptp";
+				}
+				else
+					document.QKform.wan_proto.value = "pptp";
 				action = "/qis/QIS_internet_account.htm";
 				submit();
-				break;				
+				break;
 			case "l2tp":
-				document.QKform.wan_proto.value = "l2tp";
+				if(dual_ewan){
+					if(cur_wan_unit == 0)
+						document.QKform.wan0_proto.value = "l2tp";
+					else
+						document.QKform.wan1_proto.value = "l2tp";
+				}
+				else
+					document.QKform.wan_proto.value = "l2tp";
 				action = "/qis/QIS_internet_account.htm";
 				submit();
-				break;				
+				break;
 			case "account":
-				document.QKform.wan_proto.value = "pptp";
+				if(dual_ewan){
+					if(cur_wan_unit == 0)
+						document.QKform.wan0_proto.value = "pptp";
+					else
+						document.QKform.wan1_proto.value = "pptp";
+				}
+				else
+					document.QKform.wan_proto.value = "pptp";
 				action = "/qis/QIS_internet_account.htm";
 				submit();
 				break;
@@ -366,13 +518,17 @@ function QIS_load_body(){
 				action = "/qis/QIS_lanip.htm";
 				submit();
 				break;
+			case "sim":
+				action = "/qis/QIS_detect.htm?flag=sim";
+				submit();
+				break;
 			default:
 				if(showCase.split("?").length == 1)
 					action = "/qis/QIS_" + showCase + ".htm";
 				else
 					action = "/qis/QIS_" + showCase.split("?")[0] + ".htm?" + showCase.split("?")[1];
 				submit();
-				break;					
+				break;
 		}
 	}
 }
@@ -685,6 +841,45 @@ function detect_httpd(){
 	<!-- internet Account -->
 	<input type="hidden" name="wan_pppoe_username" value="<% nvram_get("wan_pppoe_username"); %>">
 	<input type="hidden" name="wan_pppoe_passwd" value="<% nvram_get("wan_pppoe_passwd"); %>">
+
+	<!-- WAN1 -->
+	<!-- detect -->
+	<input type="hidden" name="wan0_proto" value="<% nvram_get("wan0_proto"); %>">
+	<!-- internet IP -->
+	<input type="hidden" name="wan0_dhcpenable_x" value="<% nvram_get("wan0_dhcpenable_x"); %>">
+	<input type="hidden" name="wan0_ipaddr_x" value="<% nvram_get("wan0_ipaddr_x"); %>">
+	<input type="hidden" name="wan0_netmask_x" value="<% nvram_get("wan0_netmask_x"); %>">
+	<input type="hidden" name="wan0_gateway_x" value="<% nvram_get("wan0_gateway_x"); %>">
+	<input type="hidden" name="wan0_heartbeat_x" value="<% nvram_get("wan0_heartbeat_x"); %>">
+	<input type="hidden" name="wan0_dnsenable_x" value="<% nvram_get("wan0_dnsenable_x"); %>">
+	<input type="hidden" name="wan0_dns1_x" value="<% nvram_get("wan0_dns1_x"); %>"> 
+	<input type="hidden" name="wan0_dns2_x" value="<% nvram_get("wan0_dns2_x"); %>"> 
+	<!-- internet ISP -->
+	<input type="hidden" name="wan0_hostname" value="<% nvram_get("wan0_hostname"); %>">
+	<input type="hidden" name="wan0_hwaddr_x" value="<% nvram_get("wan0_hwaddr_x"); %>">
+	<!-- internet Account -->
+	<input type="hidden" name="wan0_pppoe_username" value="<% nvram_get("wan0_pppoe_username"); %>">
+	<input type="hidden" name="wan0_pppoe_passwd" value="<% nvram_get("wan0_pppoe_passwd"); %>">
+
+	<!-- WAN2 -->
+	<!-- detect -->
+	<input type="hidden" name="wan1_proto" value="<% nvram_get("wan1_proto"); %>">
+	<!-- internet IP -->
+	<input type="hidden" name="wan1_dhcpenable_x" value="<% nvram_get("wan1_dhcpenable_x"); %>">
+	<input type="hidden" name="wan1_ipaddr_x" value="<% nvram_get("wan1_ipaddr_x"); %>">
+	<input type="hidden" name="wan1_netmask_x" value="<% nvram_get("wan1_netmask_x"); %>">
+	<input type="hidden" name="wan1_gateway_x" value="<% nvram_get("wan1_gateway_x"); %>">
+	<input type="hidden" name="wan1_heartbeat_x" value="<% nvram_get("wan1_heartbeat_x"); %>">
+	<input type="hidden" name="wan1_dnsenable_x" value="<% nvram_get("wan1_dnsenable_x"); %>">
+	<input type="hidden" name="wan1_dns1_x" value="<% nvram_get("wan1_dns1_x"); %>"> 
+	<input type="hidden" name="wan1_dns2_x" value="<% nvram_get("wan1_dns2_x"); %>"> 
+	<!-- internet ISP -->
+	<input type="hidden" name="wan1_hostname" value="<% nvram_get("wan1_hostname"); %>">
+	<input type="hidden" name="wan1_hwaddr_x" value="<% nvram_get("wan1_hwaddr_x"); %>">
+	<!-- internet Account -->
+	<input type="hidden" name="wan1_pppoe_username" value="<% nvram_get("wan1_pppoe_username"); %>">
+	<input type="hidden" name="wan1_pppoe_passwd" value="<% nvram_get("wan1_pppoe_passwd"); %>">
+
 	<!-- ap lan -->
 	<input type="hidden" name="lan_proto" value="<% nvram_get("lan_proto"); %>">
 	<input type="hidden" name="lan_ipaddr" value="<% nvram_get("lan_ipaddr"); %>">

@@ -92,6 +92,10 @@ function initial(){
 		document.getElementById("guest_table5_2").style.display = "";
 	}
 
+	if(wl_info.band60g_support) {
+		document.getElementById("guest_table60").style.display = "";
+	}
+
 	if(radio_2 != 1){
 		document.getElementById('2g_radio_hint').style.display ="";
 	}
@@ -122,6 +126,39 @@ function initial(){
 
 	if(!fbwifi_support) {
 		document.getElementById("guest_tableFBWiFi").style.display = "none";
+	}
+
+	if(lyra_hide_support)
+		document.getElementById("gn_index_tr").style.display = "none";
+
+	if(ifttt_support){
+		$("#smart_home").show();
+	}
+
+	//When redirect page from Free WiFi or Captive Portal, auto go to anchor tag
+	var gn_idx = cookie.get("captive_portal_gn_idx");
+	if(gn_idx != "" && gn_idx != null) {
+		var gn_idx_array = gn_idx.split(">");
+		if(gn_idx_array.length == 2) {
+			var gn_num = gn_idx_array[0];
+			var type_hint = "";
+			switch(gn_idx_array[1]) {
+				case "captivePortal" :
+					type_hint = "Captive Portal";
+					break;
+				case "freeWiFi" :
+					type_hint = "Free W-Fi";
+					break;
+			}
+			if(based_modelid == "BRT-AC828")
+				window.location.hash = "guest_block_anchor_" + gn_num;
+			else
+				window.location.hash = "guest_block_anchor";
+			setTimeout(function(){
+				alert("Guest Network – " + gn_num + " will used by " + type_hint);
+			}, 100);
+		}
+		cookie.unset("captive_portal_gn_idx");
 	}
 }
 
@@ -197,7 +234,8 @@ function gen_gntable_tr(unit, gn_array, slicesb){
 	htmlcode += '"><tr><th align="left" width="160px">';
 	htmlcode += '<table id="GNW_'+GN_band+'G" class="gninfo_th_table" align="left" style="margin:auto;border-collapse:collapse;">';
 	htmlcode += '<tr><th align="left" style="height:40px;"><#QIS_finish_wireless_item1#></th></tr>';
-	htmlcode += "<tr><th align=\"left\" style=\"height:40px;\"><#WLANConfig11b_AuthenticationMethod_itemname#></th></tr>";
+	if(!lyra_hide_support)
+		htmlcode += "<tr><th align=\"left\" style=\"height:40px;\"><#WLANConfig11b_AuthenticationMethod_itemname#></th></tr>";
 	htmlcode += '<tr><th align="left" style="height:40px;"><#Network_key#></th></tr>';
 	htmlcode += '<tr><th align="left" style="height:40px;"><#mssid_time_remaining#></th></tr>';
 	if(sw_mode != "3"){
@@ -278,16 +316,21 @@ function gen_gntable_tr(unit, gn_array, slicesb){
 				}
 			}
 
+			var control_setting_flag = false;
+			if(captive_portal_used_wl_array["wl" + unit_subunit] == undefined || captive_portal_used_wl_array["wl" + unit_subunit] != "Facebook Wi-Fi")
+				control_setting_flag = true;
+
 			htmlcode += '<td><table id="GNW_'+GN_band+'G'+i+'" class="gninfo_table" align="center" style="margin:auto;border-collapse:collapse;">';			
 			if(gn_array[i][0] == "1"){
-				if(captive_portal_used_wl_array["wl" + unit_subunit] == undefined) {
+				if(control_setting_flag) {
 					htmlcode += '<tr><td align="center" class="gninfo_table_top"></td></tr>';
 					show_str = decodeURIComponent(gn_array[i][1]);
 					if(show_str.length >= 21)
 						show_str = show_str.substring(0,17) + "...";
 					show_str = handle_show_str(show_str);
 					htmlcode += '<tr><td align="center" onclick="change_guest_unit('+ unit +','+ subunit +');">'+ show_str +'</td></tr>';
-					htmlcode += '<tr><td align="center" onclick="change_guest_unit('+ unit +','+ subunit +');">'+ translate_auth(gn_array[i][2]) +'</td></tr>';
+					if(!lyra_hide_support)
+						htmlcode += '<tr><td align="center" onclick="change_guest_unit('+ unit +','+ subunit +');">'+ translate_auth(gn_array[i][2]) +'</td></tr>';
 					
 					if(gn_array[i][2].indexOf("wpa") >= 0 || gn_array[i][2].indexOf("radius") >= 0)
 							show_str = "";
@@ -334,12 +377,22 @@ function gen_gntable_tr(unit, gn_array, slicesb){
 			}														
 			
 			if(sw_mode != "3"){
-					if(gn_array[i][0] == "1" && captive_portal_used_wl_array["wl" + unit_subunit] == undefined) htmlcode += '<tr><td align="center" onclick="change_guest_unit('+ unit +','+ subunit +');">'+ gn_array[i][12] +'</td></tr>';
+					if(gn_array[i][0] == "1" && control_setting_flag) htmlcode += '<tr><td align="center" onclick="change_guest_unit('+ unit +','+ subunit +');">'+ gn_array[i][12] +'</td></tr>';
 			}
 										
-			if(gn_array[i][0] == "1" && captive_portal_used_wl_array["wl" + unit_subunit] == undefined){
+			if(gn_array[i][0] == "1" && control_setting_flag){
+				if(captive_portal_used_wl_array["wl" + unit_subunit] == undefined) {
 					htmlcode += '<tr><td align="center" class="gninfo_table_bottom"></td></tr>';
 					htmlcode += '<tfoot><tr><td align="center"><input type="button" class="button_gen" value="<#btn_remove#>" onclick="close_guest_unit('+ unit +','+ subunit +');"></td></tr></tfoot>';
+				}
+				else {
+					if(captive_portal_used_wl_array["wl" + unit_subunit] != "Facebook Wi-Fi")
+						htmlcode += '<tfoot><tr rowspan="3"><td align="center"><span style="color:#FFCC00;">Used by ' + captive_portal_used_wl_array["wl" + unit_subunit] + '</span></td></tr></tfoot>';
+				}
+			}
+
+			if(unit == 0 && i == (gn_array_length-1)){
+				htmlcode += '<tfoot><tr><td align="center"><div id="smart_home" style="font-size: 13px;font-weight:bolder;color:rgb(255, 204, 0);position:absolute;margin:33px 0px 0px -12px;display:none">Alexa/IFTTT Configured</div></td></tr></tfoot>';
 			}
 			htmlcode += '</table></td>';		
 	}	
@@ -363,70 +416,85 @@ function gen_gntable(){
 	var htmlcode = ""; 
 	var htmlcode5 = ""; 
 	var htmlcode5_2 = ""; 
+	var htmlcode60 = "";
 	var gn_array_2g_tmp = gn_array_2g;
 	var gn_array_5g_tmp = gn_array_5g;
 	var gn_array_5g_2_tmp = gn_array_5g_2;
+	var gn_array_60g_tmp = gn_array_60g;
 	var band2sb = 0;
 	var band5sb = 0;
 	var band5sb_2 = 0;
+	var band60sb = 0;
 
-	htmlcode += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_2g">';
-	htmlcode += '<tr id="2g_title"><td align="left" style="color:#5AD;font-size:16px; border-bottom:1px dashed #AAA;"><span>2.4GHz</span>';
-	htmlcode += '<span id="2g_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(0);"><#btn_go#></a></span></td></tr>';	
-	while(gn_array_2g_tmp.length > 4){
+	if(gn_array_2g_tmp.length > 0){
+		htmlcode += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_2g">';
+		htmlcode += '<tr id="2g_title"><td align="left" style="color:#5AD;font-size:16px; border-bottom:1px dashed #AAA;"><span>2.4GHz</span>';
+		htmlcode += '<span id="2g_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(0);"><#btn_go#></a></span></td></tr>';
+		while(gn_array_2g_tmp.length > 4){
+			htmlcode += '<tr><td>';
+			htmlcode += gen_gntable_tr(0, gn_array_2g_tmp.slice(0, 4), band2sb);
+			band2sb++;
+			gn_array_2g_tmp = gn_array_2g_tmp.slice(4);
+			htmlcode += '</td></tr>';
+		}
+
 		htmlcode += '<tr><td>';
-		htmlcode += gen_gntable_tr(0, gn_array_2g_tmp.slice(0, 4), band2sb);
-		band2sb++;
-		gn_array_2g_tmp = gn_array_2g_tmp.slice(4);
+		htmlcode += gen_gntable_tr(0, gn_array_2g_tmp, band2sb);
 		htmlcode += '</td></tr>';
+		htmlcode += '</table>';
+		document.getElementById("guest_table2").innerHTML = htmlcode;
 	}
 	
-	htmlcode += '<tr><td>';
-	htmlcode += gen_gntable_tr(0, gn_array_2g_tmp, band2sb);
-	htmlcode += '</td></tr>';
-	htmlcode += '</table>';
-	document.getElementById("guest_table2").innerHTML = htmlcode;
-	
-	htmlcode5 += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_5g">';
-	htmlcode5 += '<tr id="5g_title"><td align="left" style="color:#5AD; font-size:16px; border-bottom:1px dashed #AAA;">';
-	if(wl_info.band5g_2_support)
-		htmlcode5 += '<span>5GHz-1</span>';
-	else
-		htmlcode5 += '<span>5GHz</span>';
-	htmlcode5 += '<span id="5g_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(1);"><#btn_go#></a></span></td></tr>';
+	if(gn_array_5g_tmp.length > 0){
+		htmlcode5 += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_5g">';
+		htmlcode5 += '<tr id="5g_title"><td align="left" style="color:#5AD; font-size:16px; border-bottom:1px dashed #AAA;">';
+		if(wl_info.band5g_2_support)
+			htmlcode5 += '<span>5GHz-1</span>';
+		else
+			htmlcode5 += '<span>5GHz</span>';
+		htmlcode5 += '<span id="5g_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(1);"><#btn_go#></a></span></td></tr>';
 
-	while(gn_array_5g_tmp.length > 4){
-		htmlcode5 += '<tr><td >';
-		htmlcode5 += gen_gntable_tr(1, gn_array_5g_tmp.slice(0, 4), band5sb);
-		band5sb++;
-		gn_array_5g_tmp = gn_array_5g_tmp.slice(4);
+		while(gn_array_5g_tmp.length > 4){
+			htmlcode5 += '<tr><td >';
+			htmlcode5 += gen_gntable_tr(1, gn_array_5g_tmp.slice(0, 4), band5sb);
+			band5sb++;
+			gn_array_5g_tmp = gn_array_5g_tmp.slice(4);
+			htmlcode5 += '</td></tr>';
+		}
+
+		htmlcode5 += '<tr><td>';
+		htmlcode5 += gen_gntable_tr(1, gn_array_5g_tmp, band5sb);
 		htmlcode5 += '</td></tr>';
+		htmlcode5 += '</table>';
+		document.getElementById("guest_table5").innerHTML = htmlcode5;
 	}
-	
-	htmlcode5 += '<tr><td>';
-	htmlcode5 += gen_gntable_tr(1, gn_array_5g_tmp, band5sb);
-	htmlcode5 += '</td></tr>';
-	htmlcode5 += '</table>';	
-	document.getElementById("guest_table5").innerHTML = htmlcode5;
 
-  if(wl_info.band5g_2_support){
-	htmlcode5_2 += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_5g_2">';
-	htmlcode5_2 += '<tr id="5g_2_title"><td align="left" style="color:#5AD; font-size:16px; border-bottom:1px dashed #AAA;"><span>5GHz-2</span>';
-	htmlcode5_2 += '<span id="5g_2_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(1);"><#btn_go#></a></span></td></tr>';
-	while(gn_array_5g_2_tmp.length > 4){
-		htmlcode5_2 += '<tr><td >';
-		htmlcode5_2 += gen_gntable_tr(2, gn_array_5g_2_tmp.slice(0, 4), band5sb_2);
-		band5sb++;
-		gn_array_5g_2_tmp = gn_array_5g_2_tmp.slice(4);
+  	if(wl_info.band5g_2_support && gn_array_5g_2_tmp.length > 0){
+		htmlcode5_2 += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_5g_2">';
+		htmlcode5_2 += '<tr id="5g_2_title"><td align="left" style="color:#5AD; font-size:16px; border-bottom:1px dashed #AAA;"><span>5GHz-2</span>';
+		htmlcode5_2 += '<span id="5g_2_radio_hint" style="font-size: 14px;display:none;color:#FC0;margin-left:17px;">* <#GuestNetwork_Radio_Status#>	<a style="font-family:Lucida Console;color:#FC0;text-decoration:underline;cursor:pointer;" onclick="_change_wl_unit_status(1);"><#btn_go#></a></span></td></tr>';
+		while(gn_array_5g_2_tmp.length > 4){
+			htmlcode5_2 += '<tr><td >';
+			htmlcode5_2 += gen_gntable_tr(2, gn_array_5g_2_tmp.slice(0, 4), band5sb_2);
+			band5sb++;
+			gn_array_5g_2_tmp = gn_array_5g_2_tmp.slice(4);
+			htmlcode5_2 += '</td></tr>';
+		}
+
+		htmlcode5_2 += '<tr><td>';
+		htmlcode5_2 += gen_gntable_tr(2, gn_array_5g_2_tmp, band5sb_2);
 		htmlcode5_2 += '</td></tr>';
+		htmlcode5_2 += '</table>';
+		document.getElementById("guest_table5_2").innerHTML = htmlcode5_2;
 	}
-	
-	htmlcode5_2 += '<tr><td>';
-	htmlcode5_2 += gen_gntable_tr(2, gn_array_5g_2_tmp, band5sb_2);
-	htmlcode5_2 += '</td></tr>';
-	htmlcode5_2 += '</table>';	
-	document.getElementById("guest_table5_2").innerHTML = htmlcode5_2;
-  }
+
+	if(wl_info.band60g_support) {
+		htmlcode60 += '<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_60g">';
+		htmlcode60 += '<tr id="60g_title"><td align="left" style="color:#5AD; font-size:16px; border-bottom:1px dashed #AAA;"><span>60GHz</span></td></tr>';
+		htmlcode60 += '<tr><td><span style="font-size: 14px;color:#FC0;"><#CTL_nonsupported#></span></td></tr>';
+		htmlcode60 += '</table>';
+		document.getElementById("guest_table60").innerHTML = htmlcode60;
+	}
 }
 
 function add_options_value(o, arr, orig){
@@ -469,30 +537,49 @@ function applyRule(){
 		{
 			document.form.qos_enable.value = 1;
 			document.form.qos_type.value = 2;
-			if(confirm("QoS function of traffic manager will be enable and set as bandwidth limiter mode by default.")){	/* Untranslated */
-				if(ctf_disable_orig == '0'){	//brcm NAT Acceleration turned ON
-					document.form.action_script.value = "saveNvram;reboot";
-					document.form.action_wait.value = "<% get_default_reboot_time(); %>";
-				}
-				else{
-					document.form.action_script.value = "restart_wireless;restart_qos;restart_firewall;";
-				}	
+			if(ctf_disable_orig == '0' && !lantiq_support){	//brcm NAT Acceleration turned ON
+				document.form.action_script.value = "saveNvram;reboot";
+				document.form.action_wait.value = "<% get_default_reboot_time(); %>";
 			}
 			else{
-				return;	
-			}		
+				document.form.action_script.value = "restart_wireless;restart_qos;restart_firewall;";
+			}
 		}
 		else if(unit_bw_enabled != document.form.wl_bw_enabled.value //bandwidth limiter settings changed OR re-enable mSSID with bandwidth limiter
 				|| unit_bw_ul != document.form.wl_bw_ul.value 
 				|| unit_bw_dl != document.form.wl_bw_dl.value
 				|| (wl_x_y_bss_enabled == 1 && (document.form.bw_enabled_x.value == "1" || document.form.bw_enabled_x[0].checked)))	
 		{	
-			if(ctf_disable_orig == '0' && document.form.wl_bw_enabled.value == 1){
+			if(ctf_disable_orig == '0' && document.form.wl_bw_enabled.value == 1 && !lantiq_support){
 				document.form.action_script.value = "saveNvram;reboot";
 				document.form.action_wait.value = "<% get_default_reboot_time(); %>";
 			}
 			else{
 				document.form.action_script.value = "restart_wireless;restart_qos;restart_firewall;";
+			}
+		}
+
+		var _unit_subunit = "wl" + document.form.wl_unit.value + "." + document.form.wl_subunit.value;
+		if(captive_portal_used_wl_array[_unit_subunit] != undefined) {
+			document.form.wl_key.disabled = true;
+			document.form.wl_key1.disabled = true;
+			document.form.wl_key2.disabled = true;
+			document.form.wl_key3.disabled = true;
+			document.form.wl_key4.disabled = true;
+			document.form.wl_wep_x.disabled = true;
+			document.form.wl_phrase_x.disabled = true;
+			document.form.wl_lanaccess.disabled = true;
+			document.form.wl_expire.disabled = true;
+			document.form.wl_bw_enabled.disabled = true;
+			document.form.wl_bw_dl.disabled = true;
+			document.form.wl_bw_ul.disabled = true;	
+			switch(captive_portal_used_wl_array[_unit_subunit]) {
+				case "Free Wi-Fi" :
+					document.form.action_script.value = "overwrite_captive_portal_ssid;" + document.form.action_script.value;
+					break;
+				case "Captive Portal Wi-Fi" :
+					document.form.action_script.value = "overwrite_captive_portal_adv_ssid;" + document.form.action_script.value;
+					break;
 			}
 		}
 		
@@ -612,7 +699,10 @@ function guest_divctrl(flag){
 		
 		if(wl_info.band5g_2_support)
 			document.getElementById("guest_table5_2").style.display = "none";
-		
+
+		if(wl_info.band60g_support)
+			document.getElementById("guest_table60").style.display = "none";
+
 		if(fbwifi_support) {
 			document.getElementById("guest_tableFBWiFi").style.display = "none";
 		}
@@ -636,6 +726,11 @@ function guest_divctrl(flag){
 		
 		if(wl_info.band5g_2_support)
 			document.getElementById("guest_table5_2").style.display = "";
+
+		if(wl_info.band60g_support)
+			document.getElementById("guest_table60").style.display = "";
+		else
+			document.getElementById("guest_table60").style.display = "none";
 
 		if(!fbwifi_support) {
 			document.getElementById("guest_tableFBWiFi").style.display = "none";
@@ -665,6 +760,8 @@ function mbss_display_ctrl(){
 			document.getElementById("guest_table5").style.display = "none";
 		if(wl_info.band5g_2_support)
 			document.getElementById("guest_table5_2").style.display = "none";
+		if(wl_info.band60g_support)
+			document.getElementById("guest_table60").style.display = "none";
 		if(fbwifi_support) {
 			document.getElementById("guest_tableFBWiFi").style.display = "none";
 		}
@@ -715,10 +812,15 @@ function change_guest_unit(_unit, _subunit){
 			gn_array = gn_array_5g_2;
 			document.form.wl_nmode_x.value = wl2_nmode_x;
 			break;
+		case 3:
+			edit_unit=3;
+			gn_array = gn_array_60g;
+			document.form.wl_nmode_x.value = wl3_nmode_x;
+			break;
 	}
 	
 	idx = _subunit - 1;
-	limit_auth_method(_unit);	
+	limit_auth_method(_unit);
 	document.form.wl_unit.value = _unit;
 	document.form.wl_subunit.value = _subunit;
 	document.getElementById("wl_vifname").innerHTML = document.form.wl_subunit.value;
@@ -726,7 +828,10 @@ function change_guest_unit(_unit, _subunit){
 	document.form.wl_ssid.value = decodeURIComponent(gn_array[idx][1]);
 	wl_x_y_bss_enabled = 1;
 	
-	document.form.wl_auth_mode_x.value = decodeURIComponent(gn_array[idx][2]);
+	if(lyra_hide_support)
+		document.form.wl_auth_mode_x.value = "psk2";
+	else
+		document.form.wl_auth_mode_x.value = decodeURIComponent(gn_array[idx][2]);
 	wl_auth_mode_change(1);
 	document.form.wl_crypto.value = decodeURIComponent(gn_array[idx][3]);
 	document.form.wl_wpa_psk.value = decodeURIComponent(gn_array[idx][4]);
@@ -755,6 +860,22 @@ function change_guest_unit(_unit, _subunit){
 	guest_divctrl(1);
 
 	updateMacModeOption();
+
+	if(lyra_hide_support){
+		document.form.wl_crypto.value = "aes";
+		document.getElementById("wl_auth_mode_tr").style.display = "none";
+		document.getElementById("wl_crypt_tr").style.display = "none";
+		document.getElementById("psk_title").innerHTML = "<#Network_key#>";
+		inputCtrl(document.form.wl_macmode, 0);
+	}
+
+	if(captive_portal_used_wl_array["wl" + _unit + "." + _subunit] == "Free Wi-Fi" || captive_portal_used_wl_array["wl" + _unit + "." + _subunit] == "Captive Portal Wi-Fi") {
+		$(".captive_portal_control_class").css("display", "none");
+
+	}
+	else {
+		$(".captive_portal_control_class").css("display", "");
+	}
 }
 
 function create_guest_unit(_unit, _subunit){
@@ -768,6 +889,9 @@ function create_guest_unit(_unit, _subunit){
 		case 2:
 			gn_array = gn_array_5g_2;
 			break;						
+		case 3:
+			gn_array = gn_array_60g;
+			break;
 	}
 	
 	if(gn_array[_subunit-1][15] != "1"){
@@ -1011,13 +1135,26 @@ function maclistMain_display(obj){
 function show_bandwidth(flag){	
 	if(flag == "1"){
 		document.form.bw_enabled_x[0].checked = true;
+		var show_hint_content = "";
 		if(ctf_disable_orig == '0'){	//brcm NAT Acceleration turned ON
-			document.getElementById("QoS_hint").innerHTML = "<br>NAT acceleration will be disable for more precise packet inspection.";	/* untranslated */
-			document.getElementById("QoS_hint").style.display = "";	
+			show_hint_content += "<br>NAT acceleration will be disable for more precise packet inspection.";	/* untranslated */			
 		}
-		else{
-			document.getElementById("QoS_hint").style.display = "none";	
+
+		if(QoS_enable_orig == "0"){
+			show_hint_content += "<br>QoS function of traffic manager will be enable and set as Bandwidth Limiter mode by default.";	/* untranslated */
 		}
+		else if(QoS_type_orig != "2"){
+			show_hint_content += "<br>QoS function of traffic manager will set as Bandwidth Limiter mode.";	/* untranslated */
+		}
+
+		if(show_hint_content.length <= 0){
+			document.getElementById("QoS_hint").style.display = "none";
+		}
+		else{			
+			document.getElementById("QoS_hint").innerHTML = show_hint_content;
+			document.getElementById("QoS_hint").style.display = "";
+		}	
+
 		inputCtrl(document.form.wl_bw_dl_x, 1);
 		inputCtrl(document.form.wl_bw_ul_x, 1);		
 	}
@@ -1027,25 +1164,6 @@ function show_bandwidth(flag){
 		inputCtrl(document.form.wl_bw_dl_x, 0);
 		inputCtrl(document.form.wl_bw_ul_x, 0);		
 	}	
-}
-
-function bandwidth_code(o,event){
-	var keyPressed = event.keyCode ? event.keyCode : event.which;
-	var target = o.value.split(".");
-	
-	if (validator.isFunctionButton(event))
-		return true;	
-		
-	if((keyPressed == 46) && (target.length > 1))
-		return false;
-
-	if((target.length > 1) && (target[1].length > 0))
-		return false;	
-		
-	if ((keyPressed == 46) || (keyPressed > 47 && keyPressed < 58))
-		return true;
-	else
-		return false;		
 }
 </script>
 </head>
@@ -1156,9 +1274,11 @@ function bandwidth_code(o,event){
 							</table>
 						</div>			
 					<!-- info table -->
+						<div id="guest_block_anchor"></div>
 						<div id="guest_table2"></div>			
 						<div id="guest_table5"></div>
 						<div id="guest_table5_2"></div>
+						<div id="guest_table60"></div>
 						<div id="guest_tableFBWiFi">
 							<table style="margin-left:20px;margin-top:25px;" width="95%" align="center" cellpadding="4" cellspacing="0" class="gninfo_head_table" id="gninfo_table_FBWiFi">
 								<tr id="FBWiFi_title">
@@ -1168,7 +1288,7 @@ function bandwidth_code(o,event){
 								</tr>
 								<tr>
 									<td width="70%">
-										<span style="line-height: 20px;" >Facebook Wi-Fi kets customers check in to participating businesses on Facebok for free Wi-Fi access. When people check int to your Page, you can share offers and other announcements with them.
+										<span style="line-height: 20px;" >Facebook Wi-Fi lets customers check in to participating businesses on Facebok for free Wi-Fi access. When people check int to your Page, you can share offers and other announcements with them.
 										</span>
 									</td>
 									<td width="30%" style="text-align:center;">
@@ -1195,7 +1315,7 @@ function bandwidth_code(o,event){
 									<span><span><input type="hidden" name="wl_wpa_gtk_rekey" value="<% nvram_get("wl_wpa_gtk_rekey"); %>" disabled></span></span>
 								</td>
 							</tr>
-							<tr>
+							<tr id="gn_index_tr">
 								<th><#Guest_network_index#></th>
 								<td>
 									<p id="wl_vifname"></p>
@@ -1257,7 +1377,7 @@ function bandwidth_code(o,event){
 									</select>
 								</td>
 							</tr>
-							<tr>
+							<tr  id="wl_auth_mode_tr">
 								<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 5);"><#WLANConfig11b_AuthenticationMethod_itemname#></a></th>
 								<td>
 									<select name="wl_auth_mode_x" class="input_option" onChange="authentication_method_change(this);">
@@ -1271,7 +1391,7 @@ function bandwidth_code(o,event){
 									<span id="wl_nmode_x_hint" style="display:none;"><#WLANConfig11n_automode_limition_hint#></span>
 								</td>
 							</tr>					
-							<tr>
+							<tr id="wl_crypt_tr">
 								<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 6);"><#WLANConfig11b_WPAType_itemname#></a></th>
 								<td>		
 									<select name="wl_crypto" class="input_option" onChange="authentication_method_change(this);">
@@ -1281,7 +1401,7 @@ function bandwidth_code(o,event){
 								</td>
 							</tr>	  
 							<tr>
-								<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 7);"><#WLANConfig11b_x_PSKKey_itemname#></a></th>
+								<th><a id="psk_title" class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 7);"><#WLANConfig11b_x_PSKKey_itemname#></a></th>
 								<td>
 									<input type="text" name="wl_wpa_psk" maxlength="64" class="input_32_table" value="<% nvram_get("wl_wpa_psk"); %>" autocorrect="off" autocapitalize="off">
 								</td>
@@ -1334,7 +1454,7 @@ function bandwidth_code(o,event){
 									<input type="text" name="wl_phrase_x" maxlength="64" class="input_32_table" value="<% nvram_get("wl_phrase_x"); %>" onKeyUp="return is_wlphrase('WLANConfig11b', 'wl_phrase_x', this);" autocorrect="off" autocapitalize="off">
 								</td>
 							</tr>
-							<tr>
+							<tr class="captive_portal_control_class">
 								<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 25);"><#Access_Time#></a></th>
 								<td>
 									<input type="radio" value="1" name="wl_expire_radio" class="content_input_fd" onClick="">
@@ -1346,8 +1466,8 @@ function bandwidth_code(o,event){
 								</td>
 							</tr>
 							
-							<tr>
-								<th>Enable Bandwidth Limiter</th>	<!-- Untranslated -->
+							<tr class="captive_portal_control_class">
+								<th><#Bandwidth_Limiter#></th>
 								<td>
 										<input type="radio" value="1" name="bw_enabled_x" class="content_input_fd" onClick="show_bandwidth(1);"><#checkbox_Yes#>
 										<input type="radio" value="0" name="bw_enabled_x" class="content_input_fd" onClick="show_bandwidth(0);"><#checkbox_No#>
@@ -1355,15 +1475,15 @@ function bandwidth_code(o,event){
 								</td>
 							</tr>
 							<tr>
-								<th><#Bandwidth_Limiter#></th>
+								<th><#Bandwidth_Setting#></th>
 								<td>
-										Download <input type="text" id="wl_bw_dl_x" name="wl_bw_dl_x" maxlength="12" onkeypress="return bandwidth_code(this, event);" class="input_12_table" value=""><label style="margin-left:2px;">Mb/s</label>
-										&nbsp;&nbsp;&nbsp;
-										Upload <input type="text" id="wl_bw_ul_x" name="wl_bw_ul_x" maxlength="12" onkeypress="return bandwidth_code(this, event);" class="input_12_table" value=""><label style="margin-left:2px;">Mb/s</label>
+										<#download_bandwidth#> <input type="text" id="wl_bw_dl_x" name="wl_bw_dl_x" maxlength="12" onkeypress="return validator.bandwidth_code(this, event);" class="input_12_table" value=""><label style="margin-left:2px;">Mb/s</label>
+										<br><br>
+										<#upload_bandwidth#> <input type="text" id="wl_bw_ul_x" name="wl_bw_ul_x" maxlength="12" onkeypress="return validator.bandwidth_code(this, event);" class="input_12_table" value=""><label style="margin-left:2px;">Mb/s</label>
 								</td>
 							</tr>
 							
-							<tr>
+							<tr class="captive_portal_control_class">
 								<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(0, 26);"><#Access_Intranet#></a></th>
 								<td>
 									<select name="wl_lanaccess" class="input_option">

@@ -49,11 +49,10 @@ var wlc_sbstate = '0';
 var wlc_scan_state = '0';
 var isDefault = false;
  
-function QKWireless_load_body(){	
+function QKWireless_load_body(){
 	parent.document.title = "<#Web_Title#> - <#QKSet_wireless_webtitle#>";
 	parent.set_step("t3");
-	check_pppoe_state();
-		/*To Handle copy, paste for mobile device*/
+	/*To Handle copy, paste for mobile device*/
 	if (document.getElementById("wl0_ssid").addEventListener){
 		document.getElementById("wl0_ssid").addEventListener("paste", function(e){setTimeout(function(){Sync_2ghz(2);},100);});
 		document.getElementById("wl0_wpa_psk").addEventListener("paste", function(e){setTimeout(function(){Sync_2ghz(2);},100);});
@@ -180,7 +179,7 @@ function QKWireless_load_body(){
 			document.getElementById("field_general").style.display = "";
 	}
 
-	if((parent.document.QKform.sw_mode.value == 1) && (is_TW_sku || is_CN_sku)){	
+	if((parent.document.QKform.sw_mode.value == 1) && parent.flag_manual != 1){
 		check_wan_state();
 	}	
 
@@ -207,8 +206,6 @@ function QKWireless_load_body(){
 }
 
 function check_wan_state(){
-	if(parent.document.QKform.sw_mode.value != "1") return false;
-
 	$.ajax({
 		url: '/result_of_get_changed_status_QIS.asp',
 		dataType: 'script',		
@@ -217,24 +214,21 @@ function check_wan_state(){
 		},
 		success: function(response){
 			setTimeout("check_wan_state();", 1000);
-			if((wanstate  == 1 && wansbstate == 0 && wanauxstate == 0) || (wanstate  == 6 && wansbstate == 0 && wanauxstate == 0) || (wanstate  == 4 && wansbstate == 2 && wanauxstate == 0)){
-				if(!parent.flag_manual)
-					parent.pppoe_failed_flag = true;
+			if(wanstate == 4 && wansbstate == 2 && wanauxstate == 0){
+				parent.pppoe_failed_flag = true;
 			}
-			else if(wanstate == 4 && wansbstate == 4 && wanauxstate == 0){
+			else{
 				parent.pppoe_failed_flag = false;
-				parent.changeSubnet = true;
-			}
-			else{	
-				if(wanstate  == 2 && wansbstate == 0 && wanauxstate == 0){
-					parent.pppoe_failed_flag = false;
-				}
+				if(wanstate == 4 && wansbstate == 4 && wanauxstate == 0)
+					parent.changeSubnet = true;
 			}
 		}
 	});	
 }
 
 function submitForm(){
+	var wlc_ssid_len = parent.document.QKform.wlc_ssid.value.length;
+	var wlc_ssid = decodeURIComponent(show_str_ssid(parent.document.QKform.wlc_ssid.value));
 	var wl_confirm = 0;
 	changeiuiBackground(1);
 
@@ -314,8 +308,8 @@ function submitForm(){
 				if(!confirm("<#JS_common_passwd#>")){
 					document.form.wl0_wpa_psk.focus();
 					document.form.wl0_wpa_psk.select();
-					return false;   
-				}       
+					return false;
+				}
 			}
 		}else
 		{
@@ -326,10 +320,18 @@ function submitForm(){
 	else{
 		if(parent.document.QKform.sw_mode.value == 2){
 			/* use parent AP settings */	
-			if(parent.document.QKform.wlc_band.value == 0)
-				document.form.wl0_ssid.value = decodeURIComponent(show_str_ssid(parent.document.QKform.wlc_ssid.value+'_RPT'));
-			else
-				document.form.wl0_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT2G');
+			if(parent.document.QKform.wlc_band.value == 0) {
+				if(wlc_ssid_len <= 28)
+					document.form.wl0_ssid.value = wlc_ssid + '_RPT';
+				else
+					document.form.wl0_ssid.value = wlc_ssid;
+			}
+			else {
+				if(wlc_ssid_len <= 26)
+					document.form.wl0_ssid.value = wlc_ssid + '_RPT2G';
+				else
+					document.form.wl0_ssid.value = wlc_ssid;
+			}
 			
 			document.form.wl1_wpa_psk.value	= parent.document.QKform.wlc_wpa_psk.value;
 			document.form.wl0_auth_mode_x.value = parent.document.QKform.wlc_auth_mode.value;
@@ -407,8 +409,8 @@ function submitForm(){
 						if(!confirm("<#JS_common_passwd#>")){
 							document.form.wl1_wpa_psk.focus();
 							document.form.wl1_wpa_psk.select();
-							return false;   
-						}       
+							return false;
+						}
 					}
 				}
 				else{
@@ -420,10 +422,18 @@ function submitForm(){
 		else{
 			if(parent.document.QKform.sw_mode.value == 2){
 				/* use parent AP settings */
-				if(parent.document.QKform.wlc_band.value == 0)
-					document.form.wl1_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G');
-				else	
-					document.form.wl1_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT');
+				if(parent.document.QKform.wlc_band.value == 0) {
+					if(wlc_ssid_len <= 26)
+						document.form.wl1_ssid.value = wlc_ssid + '_RPT5G';
+					else
+						document.form.wl1_ssid.value = wlc_ssid;
+				}
+				else {
+					if(wlc_ssid_len <= 28)
+						document.form.wl1_ssid.value = wlc_ssid + '_RPT';
+					else
+						document.form.wl1_ssid.value = wlc_ssid;
+				}
 				
 				document.form.wl1_wpa_psk.value	= parent.document.QKform.wlc_wpa_psk.value;
 				document.form.wl1_auth_mode_x.value = parent.document.QKform.wlc_auth_mode.value;
@@ -512,10 +522,18 @@ function submitForm(){
 		}else{
 			if(parent.document.QKform.sw_mode.value == 2){
 				/* use parent AP settings */
-				if(parent.document.QKform.wlc_band.value == 0)
-					document.form.wl2_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G');
-				else	
-					document.form.wl2_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT');
+				if(parent.document.QKform.wlc_band.value == 0) {
+					if(wlc_ssid_len <= 26)
+						document.form.wl2_ssid.value = wlc_ssid + '_RPT5G';
+					else
+						document.form.wl2_ssid.value = wlc_ssid;
+				}
+				else {
+					if(wlc_ssid_len <= 28)
+						document.form.wl2_ssid.value = wlc_ssid + '_RPT';
+					else
+						document.form.wl2_ssid.value = wlc_ssid;
+				}
 				
 				document.form.wl2_wpa_psk.value	= parent.document.QKform.wlc_wpa_psk.value;
 				document.form.wl2_auth_mode_x.value = parent.document.QKform.wlc_auth_mode.value;
@@ -533,7 +551,7 @@ function submitForm(){
 					document.form.wl2_wep_x.value = "<% nvram_get("wl2_wep_x"); %>";
 			}
 		}
-	}	
+	}
 
 	if(parent.document.getElementById("flag").value == "adv_ap_mode" || parent.document.QKform.sw_mode.value == "3"){ // AP mode
 		document.form.flag.value = "adv_ap_mode";
@@ -711,7 +729,7 @@ function submitForm(){
 
 		document.form.flag.value = "wlcconnect";
 		document.form.action_script.value = "reboot";
-		parent.document.getElementById("stassid").innerHTML = document.form.wlc_ssid.value;
+		parent.document.getElementById("stassid").innerHTML = parent.htmlEnDeCode.htmlEncode(document.form.wlc_ssid.value);
 
 		inputCtrl(document.form.wl0_ssid,1);
 		inputCtrl(document.form.wl0_wpa_psk,1);
@@ -753,14 +771,8 @@ function submitForm(){
 		document.form.http_passwd.disabled = false;
 	}
 
-	if(smart_connect_support && (document.form.sw_mode.value == "1" || document.form.sw_mode.value == "3")){
-			if(document.form.smart_connect_t[0].checked == true){
-				document.form.smart_connect_x.value = 1;
-				document.form.wl1_wpa_psk.value = document.form.wl0_wpa_psk.value;
-				if(wl_info.band5g_2_support)
-					document.form.wl2_wpa_psk.value = document.form.wl0_wpa_psk.value; 		
-			}else if(document.form.smart_connect_t[1].checked == true)
-				document.form.smart_connect_x.value = 0;
+	if(smart_connect_support){
+		document.form.smart_connect_x.value = 0;
 	}
 
 	if(parent.based_modelid == "RT-AC87U")
@@ -789,7 +801,7 @@ function submitForm(){
 	}
 
 	document.form.submit();
-	if((document.form.sw_mode.value == "1" || document.form.sw_mode.value == "3") && !parent.pppoe_failed_flag){
+	if((document.form.sw_mode.value == "1" || document.form.sw_mode.value == "3") && !(!parent.flag_manual && parent.pppoe_failed_flag)){
 		setTimeout(function(){
 			location.href = "/qis/QIS_finish.htm";
 		}, 500)
@@ -1057,26 +1069,61 @@ function submitenter(myfield,e)
 
 function RP_useParentSetting(){
 	if(document.getElementById('RP_parentSetting').checked == true){
+		var wlc_ssid_len = parent.document.QKform.wlc_ssid.value.length;
+		var wlc_ssid = decodeURIComponent(show_str_ssid(parent.document.QKform.wlc_ssid.value));
 		if(parent.document.QKform.wlc_band.value == 0){
-				document.form.wl0_ssid.value = decodeURIComponent(show_str_ssid(parent.document.QKform.wlc_ssid.value+'_RPT'));
+			if(wlc_ssid_len <= 28)
+				document.form.wl0_ssid.value = wlc_ssid + '_RPT';
+			else
+				document.form.wl0_ssid.value = wlc_ssid;
 
-				if(band5g_support)
-					document.form.wl1_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G');
-				if(wl_info.band5g_2_support)
-					document.form.wl2_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G-2');
+			if(band5g_support) {
+				if(wlc_ssid_len <= 26)
+					document.form.wl1_ssid.value = wlc_ssid + '_RPT5G';
+				else
+					document.form.wl1_ssid.value = wlc_ssid;
+			}
+			if(wl_info.band5g_2_support) {
+				if(wlc_ssid_len <= 24)
+					document.form.wl2_ssid.value = wlc_ssid + '_RPT5G-2';
+				else
+					document.form.wl2_ssid.value = wlc_ssid
+			}
 		}
 		else if(parent.document.QKform.wlc_band.value == 1){
-			document.form.wl0_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT2G');
-			if(band5g_support)
-				document.form.wl1_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT');
-			if(wl_info.band5g_2_support)
-				document.form.wl2_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G-2');
+			if(wlc_ssid_len <= 26)
+				document.form.wl0_ssid.value = wlc_ssid + '_RPT2G';
+			else
+				document.form.wl0_ssid.value = wlc_ssid;
+			if(band5g_support) {
+				if(wlc_ssid_len <= 28)
+					document.form.wl1_ssid.value = wlc_ssid + '_RPT';
+				else
+					document.form.wl1_ssid.value = wlc_ssid;
+			}
+			if(wl_info.band5g_2_support) {
+				if(wlc_ssid_len <= 24)
+					document.form.wl2_ssid.value = wlc_ssid + '_RPT5G-2';
+				else
+					document.form.wl2_ssid.value = wlc_ssid;
+			}
 		}else if(parent.document.QKform.wlc_band.value == 2){
-			document.form.wl0_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT2G');
-			if(band5g_support)
-				document.form.wl1_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'_RPT5G');
-			if(wl_info.band5g_2_support)
-				document.form.wl2_ssid.value = decodeURIComponent(parent.document.QKform.wlc_ssid.value+'RPT');
+			if(wlc_ssid_len <= 26)
+				document.form.wl0_ssid.value = wlc_ssid + '_RPT2G';
+			else
+				document.form.wl0_ssid.value = wlc_ssid;
+			if(band5g_support) {
+				if(wlc_ssid_len <= 26)
+					document.form.wl1_ssid.value = wlc_ssid + '_RPT5G';
+				else
+					document.form.wl1_ssid.value = wlc_ssid;
+			}
+			if(wl_info.band5g_2_support) {
+				if(wlc_ssid_len <= 28)
+					document.form.wl2_ssid.value = wlc_ssid + '_RPT';
+				else
+					document.form.wl2_ssid.value = wlc_ssid;
+			}
 		}
 		
 		if(parent.document.QKform.wlc_auth_mode.value == "shared" || (parent.document.QKform.wlc_auth_mode.value == "open" && parent.document.QKform.wlc_wep.value !=0) ){
@@ -1145,7 +1192,7 @@ function RP_useParentSetting(){
 	}	
 	else{
 		if('<% nvram_get("wlc_band"); %>' == '1'){
-			var _ssid_2g = wl0_ssid_orig;
+			var _ssid_2g = encodeURIComponent(wl0_ssid_orig);
 			var _psk_2g = wl0_wpa_psk_orig;
 			var _auth_mode_2g = '<% nvram_get("wl0_auth_mode_x"); %>';
 			if(band5g_support){
@@ -1154,16 +1201,16 @@ function RP_useParentSetting(){
 				var _auth_mode_5g = '<% nvram_get("wl1.1_auth_mode_x"); %>';
 			}
 			if(wl_info.band5g_2_support){
-				var _ssid_5g_2 = wl2_ssid_orig;
+				var _ssid_5g_2 = encodeURIComponent(wl2_ssid_orig);
 				var _psk_5g_2 = wl2_wpa_psk_orig;
 				var _auth_mode_5g_2 = '<% nvram_get("wl2_auth_mode_x"); %>';
 			}
 		}else if('<% nvram_get("wlc_band"); %>' == '2'){
-			var _ssid_2g = wl0_ssid_orig;
+			var _ssid_2g = encodeURIComponent(wl0_ssid_orig);
 			var _psk_2g = wl0_wpa_psk_orig;
 			var _auth_mode_2g = '<% nvram_get("wl0_auth_mode_x"); %>';
 			if(band5g_support){
-				var _ssid_5g = wl1_ssid_orig;
+				var _ssid_5g = encodeURIComponent(wl1_ssid_orig);
 				var _psk_5g = wl1_wpa_psk_orig;
 				var _auth_mode_5g = '<% nvram_get("wl1_auth_mode_x"); %>';
 			}
@@ -1178,12 +1225,12 @@ function RP_useParentSetting(){
 			var _psk_2g = '<% nvram_char_to_ascii("", "wl0.1_wpa_psk"); %>';
 			var _auth_mode_2g = '<% nvram_get("wl0.1_auth_mode_x"); %>';
 			if(band5g_support){
-				var _ssid_5g = wl1_ssid_orig;
+				var _ssid_5g = encodeURIComponent(wl1_ssid_orig);
 				var _psk_5g = wl1_wpa_psk_orig;
 				var _auth_mode_5g = '<% nvram_get("wl1_auth_mode_x"); %>';
 			}
 			if(wl_info.band5g_2_support){
-				var _ssid_5g_2 = wl2_ssid_orig;
+				var _ssid_5g_2 = encodeURIComponent(wl2_ssid_orig);
 				var _psk_5g_2 = wl2_wpa_psk_orig;
 				var _auth_mode_5g_2 = '<% nvram_get("wl2_auth_mode_x"); %>';
 			}	
@@ -1274,28 +1321,6 @@ function detect_LANStatus(_flag){
 				setTimeout("detect_LANStatus('"+_flag+"');", 2000);
 		}
 	});
-}
-
-function check_pppoe_state(){
-	if(parent.document.QKform.sw_mode.value != "1") return false;
-
-	$.ajax({
-		url: '/result_of_get_changed_status_QIS.asp',
-		dataType: 'script',		
-		error: function(xhr){
-			check_pppoe_state();		
-		},
-		success: function(response){
-			setTimeout("check_pppoe_state();", 1000);
-			if((wanstate  == 1 && wansbstate == 0 && wanauxstate == 0) || (wanstate  == 1 && wansbstate == 0 && wanauxstate == 1) || (wanstate  == 6 && wansbstate == 0 && wanauxstate == 0) || (wanstate  == 4 && wansbstate == 2 && wanauxstate == 0)){
-				if(!parent.flag_manual)
-					parent.pppoe_failed_flag = true;				
-			}
-			else if(wanstate  == 2 && wansbstate == 0 && wanauxstate == 0){
-				parent.pppoe_failed_flag = false;
-			}	
-		}
-	});	
 }
 </script>
 </head>

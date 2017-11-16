@@ -225,7 +225,7 @@ function tryParseJSON (jsonString){
 var login_info =  tryParseJSON('<% login_error_info(); %>');
 var isIE8 = navigator.userAgent.search("MSIE 8") > -1; 
 var isIE9 = navigator.userAgent.search("MSIE 9") > -1; 
-var remaining_time = 300 - login_info.lock_time;
+var remaining_time = login_info.lock_time;
 var countdownid, rtime_obj;
 var redirect_page = login_info.page;
 var cloud_file = '<% get_parameter("file"); %>';
@@ -234,11 +234,11 @@ var isRouterMode = ('<% nvram_get("sw_mode"); %>' == '1') ? true : false;
 var header_info = [<% get_header_info(); %>][0];
 var ROUTERHOSTNAME = '<% nvram_get("local_domain"); %>';
 var domainNameUrl = ((header_info.host.split(":").length==2)?"https":"http")+"://"+header_info.host.replace(header_info.host.split(":")[0], ROUTERHOSTNAME);
-var iAmAlive = function(ret){if(ret.isdomain) window.location.href=domainNameUrl};
+var chdom = function(){window.location.href=domainNameUrl};
 (function(){
 	if(ROUTERHOSTNAME !== header_info.host && ROUTERHOSTNAME != "" && isRouterMode){
 		setTimeout(function(){
-			var s=document.createElement("script");s.type="text/javascript";s.src=domainNameUrl+"/httpd_check.json?hostname="+header_info.host.split(":")[0];var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(s,h);
+			var s=document.createElement("script");s.type="text/javascript";s.src=domainNameUrl+"/chdom.json?hostname="+header_info.host.split(":")[0];var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(s,h);
 		}, 1);
 	}
 })();
@@ -262,7 +262,7 @@ function initial(){
 		document.getElementById("error_status_field").style.display ="";
 
 		if(flag == 3){
-			document.getElementById("error_status_field").innerHTML ="* Invalid username or password";
+			document.getElementById("error_status_field").innerHTML ="* <#JS_validLogin#>";
 		}
 		else if(flag == 7){
 			document.getElementById("error_status_field").innerHTML ="You have entered an incorrect username or password 5 times. Please try again after "+"<span id='rtime'></span>"+" seconds.";

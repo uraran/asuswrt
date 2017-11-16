@@ -66,7 +66,7 @@ obj-$(CONFIG_RLT_STA_SUPPORT)      += rlt_wifi_sta/
 endif
 ifneq ($(CONFIG_MT_AP_SUPPORT),)
 #obj-$(CONFIG_MT_AP_SUPPORT)       += mt_wifi_ap/
-obj-$(CONFIG_CHIP_MT7615E)       += %DriverPath%/
+obj-$(CONFIG_CHIP_MT7615E)       += mt_wifi_ap_7615E_4411/
 endif
 ifneq ($(CONFIG_MT_STA_SUPPORT),)
 obj-$(CONFIG_MT_STA_SUPPORT)      += mt_wifi_sta/

@@ -1,7 +1,7 @@
 
 include ../common.mak
 
-CFLAGS	+= -I. -I$(TOP)/shared -I$(SRCBASE)/include -I$(SRCBASE)/common/include -Wall -Werror
+CFLAGS	+= -I. -I$(TOP)/shared -I$(SRCBASE)/include -I$(SRCBASE)/common/include -Wall -Werror -fPIC
 CFLAGS	+= $(if $(WLAN_ComponentIncPath),$(WLAN_ComponentIncPath),$(addprefix -I,$(wildcard $(SRCBASE)/shared/bcmwifi/include)))
 CFLAGS	+= -s -O2
 LDFLAGS += -L$(TOP)/nvram$(BCMEX)${EX7} ${EXTRA_NV_LDFLAGS} -lnvram
@@ -26,14 +26,22 @@ LDFLAGS += -L$(TOP)/sqlite/.libs -lsqlite3 -L$(TOP)/nt_center/lib -lnt
 ifneq ($(RTCONFIG_QCA),y)
 LDFLAGS += -lpthread
 endif
+else
+ifeq ($(RTCONFIG_AMAS),y)
+LDFLAGS += -L$(TOP)/json-c/.libs -ljson-c
+endif
+endif
+
+ifeq ($(RTCONFIG_SW_HW_AUTH),y)
+CFLAGS  += -I$(TOP)/sw-hw-auth
 endif
 
 vpath %.c $(SRCBASE)/shared $(WLAN_ComponentSrcDirs)
 
 ifeq ($(wildcard $(SRCBASE)/router/wlc_nt/*.c),)
 all:
-	-cp -f prebuilt/wlc_nt ./
-	-cp -f prebuilt/libwlc_nt_client.so ./
+	-cp -f prebuild/wlc_nt ./
+	-cp -f prebuild/libwlc_nt_client.so ./
 else
 all: wlc_nt libwlc_nt_client.so
 endif
