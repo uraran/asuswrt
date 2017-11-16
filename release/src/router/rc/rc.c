@@ -20,6 +20,10 @@
 #include <qca.h>
 #endif
 
+#if defined(RTCONFIG_LP5523)
+#include <lp5523led.h>
+#endif
+
 #ifndef ARRAYSIZE
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 #endif /* ARRAYSIZE */
@@ -627,6 +631,9 @@ static const applets_t applets[] = {
 #ifdef RTCONFIG_QTN
 	{ "qtn_monitor",		qtn_monitor_main		},
 #endif
+#ifdef RTCONFIG_LANTIQ
+	{ "wave_monitor",		wave_monitor_main		},
+#endif
 #ifdef RTCONFIG_USB
 	{ "usbled",			usbled_main			},
 #endif
@@ -729,7 +736,7 @@ static const applets_t applets[] = {
 #if !(defined(RTCONFIG_QCA) || defined(RTCONFIG_RALINK) || defined(RTCONFIG_REALTEK))
 	{ "erp_monitor",		erp_monitor_main		},
 #endif
-#if defined(HIVESPOT)
+#if defined(MAPAC2200)
 	{ "dpdt_ant",			dpdt_ant_main		},
 #endif
 	{NULL, NULL}
@@ -819,7 +826,7 @@ int main(int argc, char **argv)
 	}
 
 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
         if(!strcmp(base, "hive_cap")){
                 if(nvram_get_int("sw_mode")==SW_MODE_ROUTER) {
                         printf("start central ap...\n");
@@ -1373,7 +1380,10 @@ int main(int argc, char **argv)
 		return 0;
 	}
 #endif
-#if defined(CONFIG_BCMWL5) || (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) || defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
+#if defined(CONFIG_BCMWL5) \
+		|| (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) \
+		|| defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK) \
+		|| defined(RTCONFIG_QSR10G)
 	else if (!strcmp(base, "wlcscan")) {
 		return wlcscan_main();
 	}

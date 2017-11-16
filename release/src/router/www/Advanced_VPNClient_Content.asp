@@ -85,6 +85,7 @@
 }
 </style>
 <script>
+ipsec_support = false; //Short term solution for hidden ipsec client
 
 var subnetIP_support_IPv6 = false;
 var vpnc_clientlist_array = [];
@@ -2560,7 +2561,7 @@ function parseArrayToStr_vpnc_pptp_options_x_list() {
 							</td>
 						</tr>
 					</table>
-					<div style="color:#FC0;margin:10px 0px;">Note: ASUS BRT-AC828 pre-configure the Diffie Hellman (DH) key change Group of phase 1 and phase 2 in auto mode, which support 2, 5, 14, 15, 16 and 18.<!--untranslated--></div>
+					<div style="color:#FC0;margin:10px 0px;">Note: ASUS <#Web_Title2#> pre-configure the Diffie Hellman (DH) key change Group of phase 1 and phase 2 in auto mode, which support 2, 5, 14, 15, 16 and 18.<!--untranslated--></div>
 				</div>
 				<!-- Advanced Settings table end-->
 

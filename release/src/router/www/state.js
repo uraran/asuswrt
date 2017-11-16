@@ -275,7 +275,7 @@ var isSwMode = function(mode){
 	}
 	else ui_sw_mode = "rt"; // Router
 
-	return (ui_sw_mode == mode);
+	return (ui_sw_mode.search(mode) !== -1);
 }
 
 var current_url = location.pathname.substring(location.pathname.lastIndexOf('/') + 1) || "<% rel_index_page(); %>";
@@ -422,6 +422,7 @@ function isSupport(_ptn){
 }
 
 var wifilogo_support = isSupport("WIFI_LOGO"); 
+var new_wifi_cert_support = isSupport("wifi2017"); 
 var band2g_support = isSupport("2.4G"); 
 var band5g_support = isSupport("5G");
 var live_update_support = isSupport("update"); 
@@ -554,6 +555,7 @@ var noiptv_support = isSupport("noiptv");
 var nz_isp_support = isSupport("nz_isp");
 var app_support = false;
 var pm_support = isSupport("permission_management");
+var smart_control_support = isSupport("smart_control");
 
 if( based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC88U" || based_modelid == "RT-AC86U" || 
 	based_modelid == "RT-AC3200" || based_modelid == "RT-AC87U" || based_modelid == "RT-AC87R" || based_modelid == "RT-AC68U" || based_modelid == "RT-AC68A" || 

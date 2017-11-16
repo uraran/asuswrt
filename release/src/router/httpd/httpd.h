@@ -285,6 +285,7 @@ extern asus_token_t* add_token_to_list(char *token, int add_to_end);
 extern asus_token_t* create_list(char *token);
 extern void set_referer_host(void);
 extern int check_xss_blacklist(char* para, int check_www);
+extern char* reverse_str( char *str );
 
 /* web-*.c */
 extern int ej_wl_status(int eid, webs_t wp, int argc, char_t **argv, int unit);
@@ -302,6 +303,14 @@ extern void add_ifttt_flag(void);
 #ifdef RTCONFIG_HTTPS
 extern char *pwenc(const char *input);
 extern int check_model_name(void);
+#endif
+
+#ifdef RTCONFIG_IFTTT
+extern char ifttt_stoken[128];
+extern time_t ifttt_timestamp;
+extern char *gen_IFTTTPincode(void);
+extern char *gen_IFTTTtoken(char* stoken);
+extern int check_ifttt_token(char* asus_token);
 #endif
 
 #endif /* _httpd_h_ */

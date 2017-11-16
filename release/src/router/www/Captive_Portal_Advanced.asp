@@ -562,7 +562,7 @@ function gen_basic_settings() {
 	code += "<th>Landing Page (Redirect to your website)</th>";/*untranslated*/
 	code += "<td>";
 	code += "<input style='margin-left:0px;' type='text' name='cpa_landing_page' value='' class='input_25_table' maxlength='64' autocomplete='off' autocorrect='off' autocapitalize='off'>";
-	code += "<span style='color:#FCO;margin-left:5px;'>ex. www.asus.com</span>";
+	code += "<span style='margin-left:5px;'>ex. http or https ://www.asus.com</span>";
 	code += "</td>";
 	code += "</tr>";
 
@@ -2542,8 +2542,7 @@ function editProfile(_profile_id) {
 			set_time(edit_profile_content[3], $("input[name=cpa_session_set]"), $("select[name=cpa_session_timeout_unit]"));
 		}
 
-		var landingPage = edit_profile_content[4].replace("http://", "");
-		$("input[name=cpa_landing_page]").val(landingPage);
+		$("input[name=cpa_landing_page]").val(edit_profile_content[4]);
 
 		var _wl_if_group = "";
 		var set_checkbox_status = function(_unit, _status) {
@@ -2942,7 +2941,7 @@ function finishRule(flag) {
 
 	var cpa_landing_page = "";
 	if($("input[name=cpa_landing_page]").val() != "") {
-		cpa_landing_page = "http://" + $("input[name=cpa_landing_page]").val().trim();
+		cpa_landing_page = $("input[name=cpa_landing_page]").val().trim();
 		if(!validator.isValidURL(cpa_landing_page)) {
 			captive_portal_adv_edit_idx = 1;
 			set_tab_and_action_btn();

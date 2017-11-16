@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_RT-AC65U.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

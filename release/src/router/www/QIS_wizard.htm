@@ -104,8 +104,9 @@ var pppoe_failed_flag = false;
 if(isMobile() && tmo_support && sw_mode != 2 && qisFlag != "sitesurvey_rep" && qisFlag != "sitesurvey_mb")
 	location.href = "MobileQIS_Login.asp";
 
-if(isMobile() && (based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300"))
-	location.href = "QIS_wizard_m.htm";	
+if(isMobile() && (based_modelid == "RT-AC88U" || based_modelid == "RT-AC3100" || based_modelid == "RT-AC5300" || based_modelid == "GT-AC5300")){
+	location.href = "QIS_wizard_m.htm" + ((qisFlag !== "") ? "?flag="+qisFlag : "");
+}
 	
 var parent_macaddr = '<% nvram_get("lan_hwaddr"); %>';
 
@@ -290,7 +291,7 @@ function QIS_load_body(){
 			document.QKform.sw_mode.value = 4;
 	}
 
-	if(based_modelid == "HIVEDOT" || based_modelid == "HIVESPOT"){
+	if(based_modelid == "MAP-AC1300" || based_modelid == "MAP-AC2200"){
 		document.getElementById("QIS_wizard_menu").style.display = "none";
 		document.getElementById("qis_menu").style.marginTop = "-160px";
 	}

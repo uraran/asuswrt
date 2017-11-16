@@ -101,6 +101,7 @@ typedef union {
 #ifdef RTCONFIG_IFTTT
 #define IFTTTUSERAGENT	"asusrouter-Windows-IFTTT-1.0"
 #define GETIFTTTCGI	"get_IFTTTPincode.cgi"
+#define GETIFTTTOKEN "get_IFTTTtoken.cgi"
 #endif
 
 typedef struct conn_item {
@@ -124,6 +125,7 @@ char referer_host[64];
 char current_page_name[128];
 char user_agent[1024];
 char gen_token[32]={0};
+char last_fail_token[32]={0};
 
 asus_token_t *head;
 asus_token_t *curr;
@@ -638,10 +640,14 @@ auth_check( char* dirname, char* authorization, char* url, char* file, char* coo
 	}
 	/* form based authorization info? */
 
-	if(search_token_in_list(asustoken, NULL) != NULL){
+	if(search_token_in_list(asustoken, NULL) != NULL
+#ifdef RTCONFIG_IFTTT
+	 || check_ifttt_token(asustoken)
+#endif
+	){
 		//_dprintf("asus token auth_check: the right user and password\n");
 #ifdef RTCONFIG_IFTTT
-		if(strncmp(url, GETIFTTTCGI, strlen(GETIFTTTCGI))==0) add_ifttt_flag();
+		if(strncmp(url, GETIFTTTCGI, strlen(GETIFTTTCGI))==0 || strncmp(url, GETIFTTTOKEN, strlen(GETIFTTTOKEN))==0) add_ifttt_flag();
 #endif
 		if(!cur_login_ip_type)
 		{
@@ -662,7 +668,13 @@ auth_check( char* dirname, char* authorization, char* url, char* file, char* coo
 			page_default_redirect(fromapp_flag, url);
 			return 0;
 		}else{
-			__send_login_page(fromapp_flag, AUTHFAIL, url, file, dt);
+			if(!strcmp(last_fail_token, asustoken))
+				send_login_page(fromapp_flag, AUTHFAIL, url, file, dt);
+			else{
+				strlcpy(last_fail_token, asustoken, sizeof(last_fail_token));
+				__send_login_page(fromapp_flag, AUTHFAIL, url, file, dt);
+			}
+
 			return AUTHFAIL;
 		}
 	}
@@ -688,7 +700,6 @@ char *generate_token(void){
 	c=rand();
 	d=rand();
 	snprintf(gen_token, sizeof(gen_token),"%d%d%d%d", a, b, c, d);
-
 	return gen_token;
 }
 
@@ -1361,11 +1372,11 @@ handle_request(void)
 				if ((mime_exception&MIME_EXCEPTION_NOAUTH_FIRST)&&!x_Setting) {
 					//skip_auth=1;
 				}
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 				else if ((mime_exception&MIME_EXCEPTION_NOAUTH_FIRST)&&nvram_match("qis_Setting", "0")) {
 					// pass
 				}else if(!fromapp && !strcmp(nvram_safe_get("hive_ui"), "")){
-					snprintf(inviteCode, sizeof(inviteCode), "<script>top.location.href='/error_page.htm?flag=10';</script>");
+					snprintf(inviteCode, sizeof(inviteCode), "<script>top.location.href='/message.htm';</script>");
 					send_page( 200, "OK", (char*) 0, inviteCode, 0);
 				}
 #endif

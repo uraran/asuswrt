@@ -59,6 +59,10 @@
 #include <sysdeps.h>
 #endif
 
+#if defined(RTCONFIG_LP5523)
+#include <lp5523led.h>
+#endif
+
 #define SHELL "/bin/sh"
 
 static int fatalsigs[] = {
@@ -1444,10 +1448,10 @@ misc_defaults(int restore_defaults)
 		case MODEL_RTAC82U:
 			nvram_set("reboot_time", "100");	// default is 70 sec
 			break;
-		case MODEL_HIVEDOT:
+		case MODEL_MAPAC1300:
 			nvram_set("reboot_time", "80");		// default is 70 sec
 			break;
-		case MODEL_HIVESPOT:
+		case MODEL_MAPAC2200:
 			nvram_set("reboot_time", "80");		// default is 70 sec
 			break;
 
@@ -1462,6 +1466,11 @@ misc_defaults(int restore_defaults)
 		//case MODEL_RTRTL8198C:
 		case MODEL_RPAC68U:
 		case MODEL_RPAC53:
+			nvram_set("reboot_time", "90");
+			break;
+#endif
+#ifdef RTCONFIG_ALPINE
+		case MODEL_GTAC9600:
 			nvram_set("reboot_time", "90");
 			break;
 #endif
@@ -2108,8 +2117,10 @@ static int set_basic_ifname_vars(char *wan, char *lan, char *wl2g, char *WL5G, c
 		ap_lan = NULL;
 
 	strncpy(buf5, WL5G, sizeof(buf5)-1);
+	buf5[sizeof(buf5)-1] = '\0';
 	wl5g = buf5;
-	wl5g2 = strspn(buf5, " ");
+	wl5g2 = buf5;
+	strsep(&wl5g2, " ");
 
 	nvram_set("wl0_vifnames", "wl0.1 wl0.2 wl0.3");
 	/* wl[01]_vifnames are virtual id only for ui control */
@@ -2323,7 +2334,7 @@ static int set_basic_ifname_vars(char *wan, char *lan, char *wl2g, char *WL5G, c
 	}
 
 #if (defined(RTCONFIG_DUALWAN) && defined(RTCONFIG_QCA))
-#if (defined(PLN12) || defined(PLAC56) || defined(PLAC66U) || defined(RTAC82U) || defined(RTAC58U) || defined(HIVEDOT) || defined(HIVESPOT))
+#if (defined(PLN12) || defined(PLAC56) || defined(PLAC66U) || defined(RTAC82U) || defined(RTAC58U) || defined(MAPAC1300) || defined(MAPAC2200))
 #else /* RT-AC55U || 4G-AC55U */
 	if(enable_dw_wan) {
 		nvram_set("vlan2hwname", "et0");
@@ -2517,7 +2528,7 @@ int init_nvram(void)
 {
 	int model = get_model();
 #if defined(RTCONFIG_RALINK) || defined(RTCONFIG_DUALWAN) || defined(RTCONFIG_QCA)
-#if !defined(RTCONFIG_ALPINE) && !defined(RTCONFIG_LANTIQ)
+#if !defined(RTCONFIG_LANTIQ)
 	int unit = 0;
 #endif
 #endif
@@ -3595,8 +3606,8 @@ int init_nvram(void)
 #endif	/* RTN13U */
 #endif // RTCONFIG_RALINK
 
-#if defined(HIVEDOT)
-	case MODEL_HIVEDOT:
+#if defined(MAPAC1300)
+	case MODEL_MAPAC1300:
 		nvram_set("boardflags", "0x100"); // although it is not used in ralink driver, set for vlan
 		nvram_set("lan_ifname", "br0");
 #ifdef RTCONFIG_DETWAN
@@ -3665,10 +3676,10 @@ int init_nvram(void)
 		nvram_set("wl1_HT_TxStream", "2");
 		nvram_set("wl1_HT_RxStream", "2");
 		break;
-#endif //HIVEDOT
+#endif //MAPAC1300
 
-#if defined(HIVESPOT)
-	case MODEL_HIVESPOT:
+#if defined(MAPAC2200)
+	case MODEL_MAPAC2200:
 		nvram_set("boardflags", "0x100"); // although it is not used in ralink driver, set for vlan
 		nvram_set("lan_ifname", "br0");
 #ifdef RTCONFIG_DETWAN
@@ -3728,7 +3739,7 @@ int init_nvram(void)
 		nvram_set("wl0_vifnames", "wl0.1 wl0.2");
 		nvram_set("wl1_vifnames", "wl1.1 wl1.2");
 		break;
-#endif //HIVESPOT
+#endif //MAPAC2200
 
 #if defined(RTAC55U) || defined(RTAC55UHP)
 	case MODEL_RTAC55U:	/* fall through */
@@ -5882,6 +5893,7 @@ int init_nvram(void)
 		add_rc_support("WIFI_LOGO");
 		add_rc_support("nandflash");
 		add_rc_support("smart_connect");
+		add_rc_support("wifi2017");
 
 		break;
 #endif
@@ -6634,7 +6646,7 @@ int init_nvram(void)
 		break;
 #endif /* RTCONFIG_REALTEK */
 
-#ifdef GTAC9600
+#ifdef RTCONFIG_ALPINE
 	case MODEL_GTAC9600:
 		if(nvram_match("QTNTELNETSRV","")) nvram_set("QTNTELNETSRV", "0");
 
@@ -6642,9 +6654,6 @@ int init_nvram(void)
 		nvram_set("landevs", "eth0 eth2 eth3 host0");
 		nvram_set("qtn_ntp_ready", "0");
 
-#if 0
-		set_basic_ifname_vars("eth0", "vlan1", "eth1", "eth2", "usb", NULL, "vlan2", "vlan3", 0);
-#else
 #ifdef RTCONFIG_HW_DUALWAN
 		if (sw_mode() == SW_MODE_ROUTER) {
 			init_dualwan();
@@ -6655,10 +6664,76 @@ int init_nvram(void)
 			nvram_set("wan_ifnames", "eth1");
 			nvram_unset("wan1_ifname");
 		}
+#elif defined(RTCONFIG_DUALWAN)
+		if(is_router_mode()){
+			set_lan_phy("eth3");
+			add_lan_phy("eth2");
+
+			if(!(get_wans_dualwan()&WANSCAP_2G))
+				add_lan_phy("host0");
+			if(!(get_wans_dualwan()&WANSCAP_5G))
+				add_lan_phy("host0");
+
+			if(nvram_get("wans_dualwan")){
+				set_wan_phy("");
+				for(unit = WAN_UNIT_FIRST; unit < WAN_UNIT_MAX; ++unit){
+#if 0
+					// TODO
+					// temporarily can't set the LAN port as the WAN port.
+					if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_LAN){
+						if(get_wans_dualwan()&WANSCAP_WAN)
+							add_wan_phy("vlan3");
+						else
+							add_wan_phy(the_wan_phy());
+					}
+					else
+#endif
+					if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_2G)
+						add_wan_phy("host0");
+					else if (get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_5G)
+						add_wan_phy("host0");
+					else if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_WAN){
+#if 0
+						// TODO
+						// temporarily can't set the LAN port as the WAN port.
+						if(nvram_get("switch_wantag") && !nvram_match("switch_wantag", "") && !nvram_match("switch_wantag", "none")) {
+							int wan_vid = nvram_get_int("switch_wan0tagid");
+							if (wan_vid) {
+								sprintf(wan_if, "vlan%d", wan_vid);
+								add_wan_phy(wan_if);
+							}
+							else
+								add_wan_phy(the_wan_phy());
+						}
+						else if (get_wans_dualwan()&WANSCAP_LAN)
+							add_wan_phy("vlan2");
+						else
+#endif
+							add_wan_phy("eth1");
+					}
+					else if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_WAN2)
+						add_wan_phy("eth0");
+					else if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_USB)
+						add_wan_phy("usb");
+#ifdef RTCONFIG_USB_MULTIMODEM
+					else if(get_dualwan_by_unit(unit) == WANS_DUALWAN_IF_USB2)
+						add_wan_phy("usb2");
+#endif
+				}
+			}
+			else
+				nvram_set("wan_ifnames", "eth1 eth0");
+		}
+		else{
+			nvram_set("lan_ifnames", "eth3 eth2 host0");
+			nvram_set("wan_ifnames", "eth1 eth0");
+			nvram_unset("wan1_ifname");
+		}
 #else
-		nvram_set("lan_ifnames", "eth0 eth2 eth3 host0");
+		nvram_set("lan_ifnames", "eth3 eth2 host0");
 		nvram_set("wan_ifnames", "eth1");
 #endif
+
 		nvram_set("wl_ifnames", "wifi2_0 wifi0_0");
 		nvram_set("wl0_vifnames", "wifi2_1 wifi2_2 wifi2_3");
 		nvram_set("wl1_vifnames", "wifi0_1 wifi0_2 wifi0_3");
@@ -6672,7 +6747,6 @@ int init_nvram(void)
 		nvram_set("wl0_ifname", "wifi2_0");
 		nvram_set("wl1_ifname", "wifi0_0");
 		nvram_set("wl1_phytype", "v");
-#endif
 
 #ifdef RTCONFIG_USBRESET
 		nvram_set_int("pwr_usb_gpio", 9|GPIO_ACTIVE_LOW);
@@ -6747,6 +6821,8 @@ int init_nvram(void)
 #ifdef BLUECAVE
 	case MODEL_BLUECAVE:
 		_dprintf("BLUECAVE: todo, init_nvram()\n");
+		nvram_set("wave_ready", "0");
+		nvram_set("wave_action", "0");
 		nvram_set("lan_ifname", "br0");
 		nvram_set("landevs", "eth0_1 eth0_2 eth0_3 eth0_4");
 
@@ -6926,8 +7002,8 @@ int init_nvram(void)
 #ifdef RTCONFIG_TCODE
 		case MODEL_RTAC82U:
 		case MODEL_RTAC58U:
-		case MODEL_HIVEDOT:
-		case MODEL_HIVESPOT:
+		case MODEL_MAPAC1300:
+		case MODEL_MAPAC2200:
 			/* Only enabled by territory_code */
 			yadns_support = 0;
 #else
@@ -7288,6 +7364,9 @@ int init_nvram(void)
 #ifdef RTCONFIG_WTFAST
 	add_rc_support("wtfast");
 #endif
+#ifdef RTCONFIG_IFTTT
+	add_rc_support("smart_control");
+#endif
 #ifdef RTCONFIG_WIFILOGO
 	add_rc_support("wifilogo");
 #endif
@@ -7445,12 +7524,18 @@ int init_nvram2(void)
 #ifdef RTCONFIG_WPS_ALLLED_BTN
 	nvram_set_int("AllLED", 1);
 #endif
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	nvram_set("wsplcd_uptime", "0");
 	nvram_set("hyd_uptime", "0");
 	nvram_set("cap_syncing","0");
 	nvram_set("re_syncing","0");
 	nvram_set("wps_syncing","0");
+	nvram_unset("lyra_re_dist");
+
+//debug
+	nvram_set("hive_dbg","1");
+	nvram_set("log_size","1024");
+//
 #endif
 #ifdef RTCONFIG_CFGSYNC
 #ifdef RTCONFIG_QCA
@@ -7461,7 +7546,7 @@ int init_nvram2(void)
 	}
 #endif
 #endif
-#if defined(HIVEDOT) || defined(HIVESPOT) /* for Lyra */
+#if defined(MAPAC1300) || defined(MAPAC2200) /* for Lyra */
 	if (nvram_match("enableGUI_fac", "1"))
 		nvram_set("hive_ui", "1");
 	nvram_unset("enableGUI_fac");
@@ -7513,10 +7598,10 @@ int init_nvram3(void)
 		config_usbbus_bled("led_usb3_gpio", "1 2");
 		break;
 
-	case MODEL_HIVESPOT:
+	case MODEL_MAPAC2200:
 		/* modify PSGMII parameter that suggested from ODM */
 		doSystem("devmem 0x98288 32 0x8280");
-	case MODEL_HIVEDOT:
+	case MODEL_MAPAC1300:
 		/* TBD */
 		break;
 	default:
@@ -7864,6 +7949,79 @@ static void start_hw_wdt(void)
 }
 #endif
 
+void Ate_on_off_led_fail_loop(void)
+{
+	while(1) {
+#ifdef RTCONFIG_LP5523
+		lp55xx_leds_proc(LP55XX_RED_LEDS, LP55XX_ACT_NONE);
+		pause();
+#else
+#if defined(RTCONFIG_CONCURRENTREPEATER)
+#if defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
+		setAllLedOff();
+		sleep(1);
+		setAllLedOn();
+		sleep(1);
+#endif
+#else
+		led_control(LED_POWER, LED_OFF);
+		sleep(1);
+		led_control(LED_POWER, LED_ON);
+		sleep(1);
+#endif
+#endif	/* RTCONFIG_LP5523 */
+	}
+}
+
+void Ate_on_off_led_success(void)
+{
+	extern void asus_ate_StartATEMode(void);
+	int led_on_cut;
+#if defined(RT4GAC68U) || defined(RTCONFIG_LP5523)
+	#define LED_ON_CUT_TRY	1
+#else
+	#define LED_ON_CUT_TRY	6
+#endif
+
+	for(led_on_cut=0; led_on_cut<LED_ON_CUT_TRY; led_on_cut++)
+	{
+		dbG("delay 5 secs & Set_StartATEMode...\n");
+#if defined(RTCONFIG_SOC_IPQ40XX)
+		doSystem("/sbin/delay_exec 5");
+#else
+		{
+			int i;
+			i = 1;
+			while(i <= 5){
+				sleep(1);
+
+				++i;
+			}
+		}
+#endif
+#ifdef RTCONFIG_BCMARM
+#ifdef RT4GAC68U
+		asus_ate_StartATEMode();
+		setAllLedOn();
+#else
+		setATEModeLedOn();
+#endif
+#else
+		asus_ate_StartATEMode();
+#ifdef RTCONFIG_LP5523
+		lp55xx_leds_proc(LP55XX_GREENERY_LEDS, LP55XX_ACT_NONE);
+#else	/* RTCONFIG_LP5523 */
+		if (get_model() == MODEL_RTAC53U) {
+			led_control(LED_POWER, LED_ON);
+			led_control(LED_USB, LED_ON);
+		}
+		else
+			setAllLedOn();
+#endif	/* RTCONFIG_LP5523 */
+#endif
+	}
+}
+
 static void sysinit(void)
 {
 	static int noconsole = 0;
@@ -8047,6 +8205,12 @@ static void sysinit(void)
 	} while (r && retry++ < 10);
 #ifdef RTCONFIG_LANTIQ
 	init_devs_defer(); // for system dependent part
+#endif
+
+#if defined(RTCONFIG_ALPINE) || defined(RTCONFIG_LANTIQ)
+	// for the nvram file's commit, if don't set this & the commit will cause the abnormal nvram file.
+	_dprintf("init: set drop_caches be 1 at ALPINE & LANTIQ...\n");
+	f_write_string("/proc/sys/vm/drop_caches", "1", 0, 0);
 #endif
 
 #ifdef RTCONFIG_NVRAM_FILE
@@ -8302,9 +8466,9 @@ static void sysinit(void)
 	// initialize BT
 	{ /* tmp */
 	uint32_t bt_reset, get_value;
-#if defined(HIVEDOT)
+#if defined(MAPAC1300)
 	bt_reset = 2;
-#elif defined(HIVESPOT)
+#elif defined(MAPAC2200)
 	bt_reset = 48;
 #elif defined(BLUECAVE)
 	bt_reset = 43;
@@ -8327,7 +8491,7 @@ static void sysinit(void)
 	}
 #endif
 #endif	/* RTCONFIG_BT_CONN */
-#if defined(HIVESPOT)
+#if defined(MAPAC2200)
 	nvram_unset("dpdt_ant");
 #endif
 }
@@ -8410,9 +8574,6 @@ int init_main(int argc, char *argv[])
 	int check_delay, delay;
 	char reboot_log[128], dev_log[128];
 	int ret;
-#ifndef RT4GAC68U
-	int led_on_cut;
-#endif
 #if defined(RTCONFIG_SOC_IPQ40XX)
 	char argva[128];
 #endif
@@ -8573,6 +8734,7 @@ int init_main(int argc, char *argv[])
 				boot_fail = nvram_get_int("Ate_boot_fail");
 				total_fail_check = nvram_get_int("Ate_total_fail_check");
 dbG("rc/boot/total chk= %d/%d/%d, boot/total fail= %d/%d\n", rc_check,boot_check,total_fail_check, boot_fail,total_fail_check);
+
 				if ( nvram_get_int("Ate_FW_err") >= nvram_get_int("Ate_fw_fail")) {
 					ate_commit_bootlog("6");
 					dbG("*** Bootloader read FW fail: %d ***\n", nvram_get_int("Ate_FW_err"));
@@ -8594,21 +8756,7 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 #ifdef RTL_WTDOG
 						stop_rtl_watchdog(); // Stop RTK watchdog, because ASUS watchdog process is not be start up.
 #endif
-						while(1) {
-#if defined(RTCONFIG_CONCURRENTREPEATER)
-#if defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
-							setAllLedOff();
-							sleep(1);
-							setAllLedOn();
-							sleep(1);
-#endif
-#else
-							led_control(LED_POWER, LED_OFF);
-							sleep(1);
-							led_control(LED_POWER, LED_ON);
-							sleep(1);
-#endif
-						}
+						Ate_on_off_led_fail_loop();	// keep loop in this function
 					}
 					else
 					dbg("rc OK\n");
@@ -8620,21 +8768,7 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 #ifdef RTL_WTDOG
 					stop_rtl_watchdog(); // Stop RTK watchdog, because ASUS watchdog process is not be start up.
 #endif
-					while(1) {
-#if defined(RTCONFIG_CONCURRENTREPEATER)
-#if defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
-						setAllLedOff();
-						sleep(1);
-						setAllLedOn();
-						sleep(1);
-#endif
-#else
-						led_control(LED_POWER, LED_OFF);
-						sleep(1);
-						led_control(LED_POWER, LED_ON);
-						sleep(1);
-#endif
-					}
+					Ate_on_off_led_fail_loop();	// keep loop in this function
 				}
 
 				rc_check++;
@@ -8692,13 +8826,22 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 #endif
 			start_wan();
 
-#if defined(HIVESPOT)
+#if defined(MAPAC2200)
 			{
 				char *dpdt_ant[] = {"dpdt_ant", NULL};
 				pid_t pid;
 				_eval(dpdt_ant, ">>/dev/null", 0, &pid);
 			}
-#endif	/* HIVESPOT */
+#endif	/* MAPAC2200 */
+
+#if defined(RTCONFIG_DETWAN)
+			if(nvram_safe_get("wan0_ifname")[0] == '\0' && sw_mode() == SW_MODE_ROUTER)
+			{ // block some broadcast in default
+				extern void detwan_set_net_block(int add);
+				detwan_set_net_block(1);
+			}
+#endif
+
 
 #ifdef RTCONFIG_QTN	/* AP and Repeater mode, workaround to infosvr, RT-AC87U bug#38, bug#44, bug#46 */
 			if (sw_mode() == SW_MODE_REPEATER ||
@@ -8756,20 +8899,12 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 				nvram_match("Ate_power_on_off_enable", "4")||
 				nvram_match("Ate_power_on_off_enable", "5")  ) {
 				start_telnetd();
-				while(1) {
-#ifdef RTCONFIG_REALTEK
-					setAllLedOff();
-					sleep(1);
-					setAllLedOn();
-					sleep(1);
-#else
-					led_control(LED_POWER, LED_OFF);
-					sleep(1);
-					led_control(LED_POWER, LED_ON);
-					sleep(1);
-#endif
-				}
+				Ate_on_off_led_fail_loop();	// keep loop in this function
 			}
+
+#ifdef RTCONFIG_BCM_7114
+			check_4366_dummy();
+#endif
 
 			//For 66U normal boot & check device
 			if (((get_model()==MODEL_RTN66U) || (get_model()==MODEL_RTAC66U) || (get_model()==MODEL_RTAC5300))
@@ -8801,6 +8936,33 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 			    }
 			}
 
+#ifdef RTCONFIG_USB
+#if defined(RTCONFIG_BT_CONN)	// usb blietooth device "hci0" need to be checked before Ate_power_on_off for checking its init state
+#ifdef RTCONFIG_USBRESET
+			set_pwr_usb(1);
+#else
+#if defined(RTCONFIG_USB_XHCI) && !defined(RTCONFIG_XHCIMODE)
+			if (nvram_get_int("usb_usb3") == 0 &&
+				nvram_get("pwr_usb_gpio") &&
+				(nvram_get_int("pwr_usb_gpio") & 0xFF) != 0xFF)
+			{
+				_dprintf("USB2: reset USB power to call up the device on the USB 3.0 port.\n");
+				set_pwr_usb(0);
+				sleep(2);
+				set_pwr_usb(1);
+			}
+#endif
+#endif // RTCONFIG_USBRESET
+
+			int fd = -1;
+			fd = file_lock("usb");  // hold off automount processing
+			start_usb(0);
+			start_usbled();
+			file_unlock(fd);	// allow to process usb hotplug events
+#endif	/* RTCONFIG_BT_CONN */
+#endif	/* RTCONFIG_USB */
+
+
 			if (nvram_match("Ate_power_on_off_enable", "1")) {
 				dev_check = nvram_get_int("Ate_dev_check");
 				dev_fail = nvram_get_int("Ate_dev_fail");
@@ -8825,21 +8987,7 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 					if (dev_fail== nvram_get_int("Ate_continue_fail")) {
 						ate_commit_bootlog("3");
 						dbG("*** dev fail continuelly: %s ***\n", dev_log);
-						while(1) {
-#ifdef RTCONFIG_REALTEK
-#if defined(RTCONFIG_CONCURRENTREPEATER)
-						setAllLedOff();
-						sleep(1);
-						setAllLedOn();
-						sleep(1);
-#endif
-#else
-						led_control(LED_POWER, LED_OFF);
-						sleep(1);
-						led_control(LED_POWER, LED_ON);
-						sleep(1);
-#endif
-						}
+						Ate_on_off_led_fail_loop();	// keep loop in this function
 					}
 				}
 				else {
@@ -8887,49 +9035,8 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 				}
 				else {
 					dbG("System boot up success %d times\n", boot_check);
-#ifdef RTCONFIG_BCMARM
 					ate_commit_bootlog("2");
-#ifndef RT4GAC68U
-					for(led_on_cut=0; led_on_cut<6; led_on_cut++)
-#endif
-					{
-#if 0
-						sleep(5);
-#else
-						dbG("delay 5 secs & Set_StartATEMode...\n");
-						i = 1;
-						while(i <= 5){
-							sleep(1);
-
-							++i;
-						}
-#endif
-#ifdef RT4GAC68U
-						nvram_set("asus_mfg", "1");
-						stop_services_mfg();
-						setAllLedOn();
-#else
-						setATEModeLedOn();
-#endif
-					}
-#else
-					ate_commit_bootlog("2");
-					for(led_on_cut=0; led_on_cut<6; led_on_cut++) {
-#if defined(RTCONFIG_SOC_IPQ40XX)
-						doSystem("/sbin/delay_exec 5");
-						doSystem("ATE Set_StartATEMode &");
-#else
-						sleep(5);
-						eval("ATE", "Set_StartATEMode"); /* Enter ATE Mode to keep led on */
-#endif
-						if (get_model() == MODEL_RTAC53U) {
-							led_control(LED_POWER, LED_ON);
-							led_control(LED_USB, LED_ON);
-						}
-						else
-							setAllLedOn();
-					}
-#endif
+					Ate_on_off_led_success();
 #if defined(RTCONFIG_RALINK) && defined(RTN65U)
 					ate_run_in();
 #endif
@@ -8938,6 +9045,7 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 			}
 
 #ifdef RTCONFIG_USB
+#if ! defined(RTCONFIG_BT_CONN)	// usb bluetooth "hci0" is init in the front
 #ifdef RTCONFIG_USBRESET
 			set_pwr_usb(1);
 #else
@@ -8959,6 +9067,8 @@ dbg("boot/continue fail= %d/%d\n", nvram_get_int("Ate_boot_fail"),nvram_get_int(
 			start_usb(0);
 			start_usbled();
 			file_unlock(fd);	// allow to process usb hotplug events
+#endif	/* RTCONFIG_BT_CONN */
+
 			/*
 			 * On RESTART some partitions can stay mounted if they are busy at the moment.
 			 * In that case USB drivers won't unload, and hotplug won't kick off again to

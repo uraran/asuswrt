@@ -2117,7 +2117,7 @@ start_default_filter(int lanunit)
 #endif
 }
 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 void reset_filter(void)
 {
 	const char *filter_rules = "/tmp/hive_filter.default";

@@ -49,11 +49,11 @@ function initial(){
 	if(isSwMode("ew")){
 		if(wlc_express == "1"){
 			document.form.wl_unit.innerHTML = '<option class="content_input_fd" value="1" selected="">5 GHz</option>';
-			if(wl_unit_value != 1) change_wl_unit();
+			if(wl_unit_value != 1) _change_wl_unit();
 		}
 		else if(wlc_express == "2"){
 			document.form.wl_unit.innerHTML = '<option class="content_input_fd" value="0" selected="">2.4 GHz</option>';
-			if(wl_unit_value != 0) change_wl_unit();
+			if(wl_unit_value != 0) _change_wl_unit();
 		}
 	}
 
@@ -137,7 +137,7 @@ function initial(){
 		document.getElementById("auto_channel").innerHTML = "Current control channel: " + cur_control_channel[wl_unit_value];
 	}
 
-	if(concurrep_support && isSwMode("re")){
+	if(concurrep_support && (isSwMode("re") || isSwMode("ew"))){
 		inputCtrl(document.form.wl_nmode_x, 0);
 		document.form.wl_subunit.disabled = false;
 		document.form.wl_subunit.value = 1;
@@ -451,7 +451,7 @@ function _change_wl_unit(val){
 	else
 		document.form.wl_subunit.value = -1;
 
-	if(concurrep_support && (isSwMode("re") || isSwMode("mb")))
+	if(concurrep_support && (isSwMode("re") || isSwMode("mb") || isSwMode("ew")))
 		document.form.wl_subunit.value = 1;
 
 	change_wl_unit();

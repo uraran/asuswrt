@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_AC2900.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

@@ -2369,15 +2369,15 @@ int gen_ralink_config(int band, int is_iNIC)
 			fprintf(fp, "HT_BW=%d\n", 0);
 		}
 		
+
 		//HT_BSSCoexistence
-		if ((wl_bw > 1) && (HTBW_MAX == 1) &&
-			!((sw_mode == SW_MODE_REPEATER)
+		if ((wl_bw > 1) && (HTBW_MAX == 1) 
 	#if defined(RTCONFIG_WIRELESSREPEATER) && defined(RTCONFIG_CONCURRENTREPEATER)
 			&& (wlc_express == 0 || (wlc_express - 1) != band)
 	#else
-			&& (wlc_band == band)
+			&& !((sw_mode == SW_MODE_REPEATER) && (wlc_band == band))
 	#endif
-			))
+			)
 			fprintf(fp, "HT_BSSCoexistence=%d\n", 0);
 		else
 			fprintf(fp, "HT_BSSCoexistence=%d\n", 1);	

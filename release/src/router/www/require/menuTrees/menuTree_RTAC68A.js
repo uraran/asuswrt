@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_RTAC68A.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

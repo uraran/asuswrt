@@ -682,13 +682,12 @@ void led_control_lte(int percent)
 }
 #endif	/* RT4GAC55U */
 
-extern uint32_t get_phy_status(uint32_t portmask);
-extern uint32_t set_phy_ctrl(uint32_t portmask, int ctrl);
-
 int wanport_status(int wan_unit)
 {
 #if defined(RTCONFIG_RALINK) || defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
 	return rtkswitch_wanPort_phyStatus(wan_unit);
+#elif defined(RTCONFIG_ALPINE)
+	return get_phy_status(wan_unit);
 #else
 	char word[100], *next;
 	int mask;

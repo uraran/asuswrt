@@ -524,6 +524,13 @@ void start_wl(void)
 		qtn_monitor_main();
 	}
 #endif
+#ifdef RTCONFIG_LANTIQ
+	_dprintf("[%s][%d] call wave_monitor()-01\n", __func__, __LINE__);
+	if(nvram_get_int("wave_ready")==1){
+		nvram_set("wave_action", "3");
+		_dprintf("[%s][%d] call wave_monitor()-02\n", __func__, __LINE__);
+	}
+#endif
 
 #if defined(RTCONFIG_RALINK_MT7621)
 	setup_smp();	/* for adjust smp_affinity of cpu */
@@ -606,7 +613,7 @@ qca_wif_up(const char* wif)
 #endif
 }
 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 void hyfi_process(void)
 {
 	if(nvram_get_int("x_Setting"))
@@ -1628,6 +1635,7 @@ void start_lan(void)
 #endif
 #ifdef CONFIG_BCMWL5
 	int unit, subunit, sta = 0;
+	const char *mode;
 #endif
 #ifdef RTCONFIG_DPSTA
 	int s = 0;
@@ -1962,11 +1970,6 @@ void start_lan(void)
 					if (ifconfig(ifname, IFUP | IFF_ALLMULTI, NULL, NULL) != 0)
 						continue;
 				}
-#ifdef RTCONFIG_RALINK
-				wlconf_ra(ifname);
-#elif defined(RTCONFIG_QCA)
-				wlconf_qca(ifname);
-#endif
 
 				/* Set the logical bridge address to that of the first interface */
 				strlcpy(ifr.ifr_name, ifname, IFNAMSIZ);
@@ -1979,7 +1982,7 @@ void start_lan(void)
 
 #ifdef CONFIG_BCMWL5
 				if ((find_in_list(nvram_safe_get("wl_ifnames"), ifname) || wl_vif_enabled(ifname, tmp)) && wlconf(ifname, unit, subunit) == 0) {
-					const char *mode = nvram_safe_get(wl_nvname("mode", unit, subunit));
+					mode = nvram_safe_get(wl_nvname("mode", unit, subunit));
 
 					if (strcmp(mode, "wet") == 0) {
 						// Enable host DHCP relay
@@ -2001,7 +2004,12 @@ void start_lan(void)
 						&& (strcmp(mode, "psta") != 0) && (strcmp(mode, "psr") != 0))
 						continue;
 				}
+#elif RTCONFIG_RALINK
+				wlconf_ra(ifname);
+#elif defined(RTCONFIG_QCA)
+				wlconf_qca(ifname);
 #endif
+
 #ifdef RTCONFIG_RALINK
 #if defined(RTCONFIG_WIRELESSREPEATER) && defined(RTCONFIG_CONCURRENTREPEATER)
 				if (!strncmp(ifname, "apcli", 5)  && nvram_get_int("wlc_express") == 0)
@@ -2175,7 +2183,7 @@ gmac3_no_swbr:
 
 #ifdef RTCONFIG_QCA
 	gen_qca_wifi_cfgs();
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	hyfi_process();
 #endif
 #endif
@@ -2470,7 +2478,7 @@ void stop_lan(void)
 		eval("ebtables", "-F");
 		eval("ebtables", "-t", "broute", "-F");
 	}
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	reset_filter();
 	goto skip_br;
 #endif
@@ -2608,7 +2616,7 @@ gmac3_no_swbr:
 		eval("wl", "-i", lan_ifname, "radio", "off");
 #endif
 	}
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 skip_br:
 #endif
 #ifdef RTCONFIG_PORT_BASED_VLAN
@@ -3319,13 +3327,9 @@ static int radio_join(int idx, int unit, int subunit, void *param)
 				stacheck = stacheck_connect;
 			}
 			else {
-#ifdef RTCONFIG_RALINK
-// add ralink client mode code here.
-#elif defined(RTCONFIG_QCA)
-// add QCA client mode code here.
-#else
-				eval("wl", "-i", ifname, "disassoc");
 #ifdef CONFIG_BCMWL5
+				eval("wl", "-i", ifname, "disassoc");
+#if 1
 				char *amode, *sec = nvram_safe_get(wl_nvname("akm", unit, subunit));
 
 				if (strstr(sec, "psk2")) amode = "wpa2psk";
@@ -3340,6 +3344,10 @@ static int radio_join(int idx, int unit, int subunit, void *param)
 #else
 				eval("wl", "-i", ifname, "join", nvram_safe_get(wl_nvname("ssid", unit, subunit)));
 #endif
+#elif RTCONFIG_RALINK
+// add ralink client mode code here.
+#elif defined(RTCONFIG_QCA)
+// add QCA client mode code here.
 #endif
 				stacheck = STACHECK_DISCONNECT;
 			}
@@ -3832,7 +3840,7 @@ void stop_lan_wl(void)
 #ifdef RTCONFIG_DPSTA
 	int dpsta = 0;
 #endif
-#if defined(HIVEDOT)|| defined(HIVESPOT)
+#if defined(MAPAC1300)|| defined(MAPAC2200)
 	int dbg=nvram_get_int("hive_dbg");
 #endif
 
@@ -3987,7 +3995,7 @@ gmac3_no_swbr:
 #endif
 
 #if defined(RTCONFIG_QCA)
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	
 	if(nvram_get_int("x_Setting"))
 		stop_hyfi();
@@ -4035,6 +4043,7 @@ void start_lan_wl(void)
 #ifdef CONFIG_BCMWL5
 	struct ifreq ifr;
 	int unit, subunit, sta = 0;
+	const char *mode;
 #endif
 #ifdef RTCONFIG_DPSTA
 	int s = 0;
@@ -4042,7 +4051,7 @@ void start_lan_wl(void)
 	dpsta_enable_info_t info = { 0 };
 	char name[80];
 #endif
-#if defined(HIVEDOT)|| defined(HIVESPOT)
+#if defined(MAPAC1300)|| defined(MAPAC2200)
 	int dbg=nvram_get_int("hive_dbg");
 #endif
 #ifdef __CONFIG_DHDAP__
@@ -4342,16 +4351,10 @@ void start_lan_wl(void)
 				}
 #endif	/* not RTCONFIG_QSR10G */
 
-#ifdef RTCONFIG_RALINK
-				wlconf_ra(ifname);
-#elif defined(RTCONFIG_QCA)
-				/* do nothing */
-#elif defined(RTCONFIG_QSR10G)
-				/* do nothing */
-#elif defined CONFIG_BCMWL5
+#ifdef CONFIG_BCMWL5
 				ether_atoe(get_lan_hwaddr(), (unsigned char *) ifr.ifr_hwaddr.sa_data);
 				if ((find_in_list(nvram_safe_get("wl_ifnames"), ifname) || wl_vif_enabled(ifname, tmp)) && wlconf(ifname, unit, subunit) == 0) {
-					const char *mode = nvram_safe_get(wl_nvname("mode", unit, subunit));
+					mode = nvram_safe_get(wl_nvname("mode", unit, subunit));
 
 					if (strcmp(mode, "wet") == 0) {
 						// Enable host DHCP relay
@@ -4373,6 +4376,12 @@ void start_lan_wl(void)
 						&& (strcmp(mode, "psta") != 0) && (strcmp(mode, "psr") != 0))
 						continue;
 				}
+#elif RTCONFIG_RALINK
+				wlconf_ra(ifname);
+#elif defined(RTCONFIG_QCA)
+				/* do nothing */
+#elif defined(RTCONFIG_QSR10G)
+				/* do nothing */
 #endif
 				/* Don't attach the main wl i/f in wds mode */
 				match = 0, i = 0;
@@ -4522,7 +4531,7 @@ gmac3_no_swbr:
 #endif
 
 #if defined(RTCONFIG_QCA)
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	if(nvram_get_int("x_Setting"))
 		start_hyfi();
 	else
@@ -4833,7 +4842,7 @@ void restart_wireless(void)
 #endif
 	int lock = file_lock("wireless");
 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	if (nvram_get_int("sw_mode")==SW_MODE_ROUTER && nvram_get_int("x_Setting") && start_cap(1)==0) {
 		file_unlock(lock);
 		return;
@@ -5043,6 +5052,13 @@ void restart_wireless(void)
 	if(nvram_get_int("qtn_ready")==1){
 		_dprintf("[%s][%d] call qtn_monitor()\n", __func__, __LINE__);
 		qtn_monitor_main();
+	}
+#endif
+#ifdef RTCONFIG_LANTIQ
+	_dprintf("[%s][%d] call wave_monitor()-04\n", __func__, __LINE__);
+	if(nvram_get_int("wave_ready")==1){
+		_dprintf("[%s][%d] call wave_monitor()-05\n", __func__, __LINE__);
+		nvram_set("wave_action", "3");
 	}
 #endif
 

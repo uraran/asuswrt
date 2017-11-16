@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_bwdpi_traffic_analyzer.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*
@@ -185,6 +186,15 @@
 				]
 			},
 			{
+				menuName: "smart Control",
+				index: "smart_control",
+				tab: [
+					{url: "Advanced_Smart_Control_Alexa.asp", tabName: "__INHERIT__"},
+					{url: "Advanced_Smart_Control_IFTTT.asp", tabName: "__INHERIT__"},
+					{url: "NULL", tabName: "__INHERIT__"}
+				]
+			},
+			{
 				menuName: "IPv6",
 				index: "menu_IPv6",
 				tab: [
@@ -308,6 +318,9 @@
 				if(!wtfast_support) {
 					retArray.push("menu_GameBoost");
 				}
+
+				if(!smart_control_support)
+					retArray.push("smart_control");
 
 				/* Operation Mode */
 				if(isSwMode("re")){
@@ -507,6 +520,11 @@
 
 				if(!wtfast_support){
 					retArray.push("GameBoost.asp");
+				}
+
+				if(!smart_control_support){
+					retArray.push("Advanced_Smart_Control_Alexa.asp");
+					retArray.push("Advanced_Smart_Control_IFTTT.asp");
 				}
 
 				if(!IPv6_support){

@@ -489,7 +489,7 @@ void start_usb(int orig)
 #if defined(RTCONFIG_BT_CONN)
 		modprobe("btusb");
 		modprobe("ath3k");
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 		if (nvram_match("x_Setting", "0"))
 			system("/usr/bin/btchk.sh &"); /* workaround script */
 #endif
@@ -500,7 +500,7 @@ void start_usb(int orig)
 	}
 }
 
-#if defined(RTAC58U) || defined(RTAC82U) || defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(RTAC58U) || defined(RTAC82U) || defined(MAPAC1300) || defined(MAPAC2200)
 void remove_dakota_usb_modules(void)
 {
 	modprobe_r(USB_DWC3);
@@ -642,7 +642,7 @@ void remove_usb_module(void)
 	remove_usb_led_module();
 	remove_usb_host_module();
 
-#if defined(RTAC58U) || defined(RTAC82U) || defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(RTAC58U) || defined(RTAC82U) || defined(MAPAC1300) || defined(MAPAC2200)
 	remove_dakota_usb_modules();
 #endif
 }
@@ -798,7 +798,7 @@ void stop_usb(int f_force)
 		}
 	}
 
-#if defined(RTAC58U) || defined(RTAC82U) || defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(RTAC58U) || defined(RTAC82U) || defined(MAPAC1300) || defined(MAPAC2200)
 	if(disabled)remove_dakota_usb_modules();
 #endif
 #endif // HND_ROUTER

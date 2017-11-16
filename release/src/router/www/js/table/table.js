@@ -252,7 +252,7 @@ var tableApi = {
 		},
 
 		// click raw edit rule block
-		"createPanel" : {
+		"clickRawEditPanel" : {
 			inputs : "" //edit rule item
 		},
 		
@@ -725,18 +725,20 @@ var tableApi = {
 						}
 						var dataRawClass = "";
 						var dataRawStyleList = "";
-						if (_obj_attr.clickRawEditPanel.inputs[k].hasOwnProperty("className")) {
-							dataRawClass = _obj_attr.clickRawEditPanel.inputs[k].className;
-						}
-						if (_obj_attr.clickRawEditPanel.inputs[k].hasOwnProperty("styleList")) {
-							dataRawStyleList = _obj_attr.clickRawEditPanel.inputs[k].styleList;
+						if(_obj_attr.clickRawEditPanel.inputs[k] != undefined) {
+							if (_obj_attr.clickRawEditPanel.inputs[k].hasOwnProperty("className")) {
+								dataRawClass = _obj_attr.clickRawEditPanel.inputs[k].className;
+							}
+							if (_obj_attr.clickRawEditPanel.inputs[k].hasOwnProperty("styleList")) {
+								dataRawStyleList = _obj_attr.clickRawEditPanel.inputs[k].styleList;
+							}
 						}
 						var dataRawStyleListJson = {};
-						Object.keys(dataRawStyleList).forEach(function(key) {
-							if (dataRawStyleList.hasOwnProperty(key)) {
-								dataRawStyleListJson[key] =dataRawStyleList[key];
+						for (var prop in dataRawStyleList) {
+							if (dataRawStyleList.hasOwnProperty(prop)) {
+								dataRawStyleListJson[prop] = dataRawStyleList[prop];
 							}
-						});
+						}
 						$("<td>")
 							.addClass("row_td")
 							.css(dataRawStyleListJson)

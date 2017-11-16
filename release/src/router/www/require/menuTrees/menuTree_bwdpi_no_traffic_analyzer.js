@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_bwdpi_no_traffic_analyzer.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

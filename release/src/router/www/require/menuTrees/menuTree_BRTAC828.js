@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_BRTAC828.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

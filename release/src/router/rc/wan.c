@@ -3087,7 +3087,7 @@ start_wan(void)
 	if (!is_routing_enabled())
 		return;
 
-#if defined(HIVESPOT) || defined(HIVEDOT)
+#if defined(MAPAC2200) || defined(MAPAC1300)
 	nvram_set("start_wan", "1");
 #endif
 
@@ -3189,7 +3189,7 @@ stop_wan(void)
 {
 	int unit;
 
-#if defined(HIVESPOT) || defined(HIVEDOT)
+#if defined(MAPAC2200) || defined(MAPAC1300)
 	if (nvram_get("start_wan") == NULL)
 		return;
 	nvram_unset("start_wan");
@@ -3609,10 +3609,26 @@ int string_add(char *string, const char *match, int at_head)
 	return 1;
 }
 
+void detwan_set_net_block(int add)
+{
+	char *block_dhcp_argv[] = {"ebtables", "-A", "FORWARD", "-p", "IPV4", "--ip-protocol", "UDP", "--ip-dport", "67", "-j", "DROP", NULL};
+	char *block_nonarp_argv[] = {"ebtables", "-A", "FORWARD", "-d", "Broadcast", "-p", "!", "ARP", "-i", "eth+", "-j", "DROP", NULL};
+
+	if(add == 0)
+	{
+		block_dhcp_argv[1] = "-D";
+		block_nonarp_argv[1] = "-D";
+	}
+
+	_eval(block_dhcp_argv, NULL, 0, NULL);
+	_eval(block_nonarp_argv, NULL, 0, NULL);
+}
+
 void detwan_apply_wan(const char *wan_ifname, unsigned int wan_mask, unsigned int lan_mask)
 {
 	char lan[128];
 	int max_inf;
+	int modify = 0;
 
 	max_inf = nvram_get_int("detwan_max");
 	if(max_inf <= 0)
@@ -3645,6 +3661,7 @@ void detwan_apply_wan(const char *wan_ifname, unsigned int wan_mask, unsigned in
 
 			if(strcmp(ifname, wan_ifname) == 0) {
 				if(string_remove(lan, ifname)) {
+					modify++;
 					eval("brctl", "delif", "br0", ifname);
 					eval("ifconfig", ifname, "down");
 					eval("ifconfig", ifname, "hw", "ether", get_wan_hwaddr());
@@ -3652,6 +3669,7 @@ void detwan_apply_wan(const char *wan_ifname, unsigned int wan_mask, unsigned in
 				}
 			} else {
 				if(string_add(lan, ifname, 1)) {
+					modify++;
 					eval("ifconfig", ifname, "down");
 					eval("ifconfig", ifname, "hw", "ether", get_lan_hwaddr());
 					eval("ifconfig", ifname, "0.0.0.0");
@@ -3662,7 +3680,10 @@ void detwan_apply_wan(const char *wan_ifname, unsigned int wan_mask, unsigned in
 		}
 	}
 
-	logmessage(__func__, "2: wan(%s) lan(%s)\n", wan_ifname, lan);
+	logmessage(__func__, "2: wan(%s) lan(%s) modify(%d)\n", wan_ifname, lan, modify);
+
+	if(modify == 0 && nvram_match("wan0_ifname", wan_ifname))
+		return;	// skip, when the same interface
 
 	nvram_set_int("wanports_mask", wan_mask);
 	nvram_set_int("lanports_mask", lan_mask);
@@ -3735,7 +3756,8 @@ int detwan_check(char *ifname, unsigned int *wan_mask)
 			phy = get_ports_status((unsigned int)value);
 			sprintf(var_name, "detwan_name_%d", idx);
 			var_value = nvram_get(var_name);
-			if(wan0_ifname == NULL || wan0_ifname[0] == '\0')
+
+//			if(wan0_ifname == NULL || wan0_ifname[0] == '\0')
 			{ //No WAN
 				if ((phy > 0 && inf_count < MAX_DETWAN && var_value && var_value[0] != '\0')
 				   ) {
@@ -3765,7 +3787,7 @@ int detwan_check(char *ifname, unsigned int *wan_mask)
 		state = discover_interfaces(inf_count, (const char **) inf_names, nvram_match("wan0_proto", "dhcp"), &got_inf);
 		now = time(NULL);
 		logmessage(__func__, "1: wan0_ifname(%s) inf_count(%d) state(%d) got_inf(%d) %s", wan0_ifname, inf_count, state, got_inf, ctime(&now));
-		if(state < 0 && inf_count == 1)
+		if(state <= 0 && inf_count == 1)
 		{
 			state = 0;
 			got_inf = 0;
@@ -3800,7 +3822,7 @@ int detwan_main(int argc, char *argv[]){
 	allmask = detwan_allmask();
 
 	logmessage(__func__, "0: sw_mode(%d) wan0_ifname(%s) allmask(%08x)", sw_mode, var_value, allmask);
-	if (sw_mode != SW_MODE_ROUTER || (var_value != NULL && var_value[0] != '\0') || allmask == 0)
+	if (sw_mode != SW_MODE_ROUTER || allmask == 0)
 		return -1;
 
 	if(nvram_match("detwan_apply", "yes"))

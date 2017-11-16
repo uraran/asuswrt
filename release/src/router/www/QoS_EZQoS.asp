@@ -545,7 +545,7 @@ function validForm(){
 				document.form.obw.select();
 				return false;
 			}
-			if( ((qos_type == 1 && document.form.bw_setting_name[1].checked == true ) || qos_type == 0) && !validator.range(document.form.obw, 1, 9999999999)){
+			if( ((qos_type == 1 && document.form.bw_setting_name[1].checked == true ) || qos_type == 0) && !validator.rangeFloat(document.form.obw, 0, 9999999999, "")){
 				return false;
 			}
 					
@@ -567,7 +567,7 @@ function validForm(){
 				document.form.ibw.select();
 				return false;
 			}
-			if( ((qos_type == 1 && document.form.bw_setting_name[1].checked == true ) || qos_type == 0) && !validator.range(document.form.ibw, 1, 9999999999)){
+			if( ((qos_type == 1 && document.form.bw_setting_name[1].checked == true ) || qos_type == 0) && !validator.rangeFloat(document.form.ibw, 0, 9999999999, "")){
 				return false;
 			}
 			

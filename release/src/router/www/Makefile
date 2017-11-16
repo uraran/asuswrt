@@ -578,6 +578,10 @@ endif
 
 ifneq ($(RTCONFIG_IFTTT), y)
 	rm -rf $(INSTALLDIR)/www/Advanced_IFTTT_Pincode.asp
+	rm -rf $(INSTALLDIR)/www/Advanced_Smart_Control_Alexa.asp
+	rm -rf $(INSTALLDIR)/www/Advanced_Smart_Control_IFTTT.asp
+	rm -rf $(INSTALLDIR)/www/images/New_ui/icon_alexa.jpg
+	rm -rf $(INSTALLDIR)/www/images/New_ui/icon_ifttt.png
 endif
 
 ifneq ($(RTCONFIG_PORT_BASED_VLAN), y)
@@ -616,7 +620,7 @@ else ifeq ($(BUILD_NAME),RT-AC65U)
 else ifeq ($(BUILD_NAME),GT-AC5300)
 	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_ROG.js modules/menuTree.js
 else ifeq ($(BUILD_NAME),BRT-AC828)
-        cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_BRTAC828.js modules/menuTree.js
+	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_BRTAC828.js modules/menuTree.js
 else ifeq ($(RTCONFIG_BWDPI),y)
 ifeq ($(findstring $(BUILD_NAME),$(MODELS_HAVE_TRAFFIC_ANALYZER)),)
 	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_bwdpi_no_traffic_analyzer.js modules/menuTree.js

@@ -2207,7 +2207,7 @@ void fini_wl(void)
 {
 	int model = get_model();
 
-#if (defined(RTAC3200) || defined(HND_ROUTER))
+#if (defined(RTAC3200) || defined(HND_ROUTER) || defined(RTCONFIG_BCM_7114) || defined(RTCONFIG_BCM9))
 	return;
 #endif
 
@@ -3064,8 +3064,12 @@ void generate_wl_para(char *ifname, int unit, int subunit)
 			nvram_set(strcat_r(prefix, "mode", tmp), "wet");
 		else nvram_set(strcat_r(prefix, "mode", tmp), "ap");
 
-#if defined(RTCONFIG_BCMARM) && defined(RTCONFIG_PROXYSTA)
+#if defined(RTCONFIG_BCMWL6) && defined(RTCONFIG_PROXYSTA)
+#ifndef HND_ROUTER
 		nvram_set(strcat_r(prefix, "psr_mrpt", tmp), is_psr(unit) ? "1" : "0");
+#else
+		nvram_set(strcat_r(prefix, "psr_mrpt", tmp), "0");
+#endif
 #endif
 
 		// TODO use lazwds directly

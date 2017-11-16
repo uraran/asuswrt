@@ -299,6 +299,9 @@ function initial(){
   		$("#goBackBtn_M").hide();
   		document.getElementById("WTFast_login_div").style.top = "150px";
   	}
+
+	var Newstr = document.getElementById("benefit3").innerHTML.replace(/, Console game/, "");
+	document.getElementById("benefit3").innerHTML = Newstr;
 }
 
 function _create_server_list(name, index, showauto){
@@ -1064,7 +1067,7 @@ function clean_macerr(){
 				<ul type="disc">
 					<li style="line-height:15px; margin-left:-25px; margin-top:-10px; color:#949393;"><#Game_Boost_Benefit1#></li>
 					<li style="line-height:15px; margin-left:-25px; color:#949393;"><#Game_Boost_Benefit2#></li>
-					<li style="line-height:15px; margin-left:-25px; color:#949393;"><#Game_Boost_Benefit3#><br>(<#Game_Boost_Benefit3_1#>)</li>
+					<li id="benefit3" style="line-height:15px; margin-left:-25px; color:#949393;"><#Game_Boost_Benefit3#><br>(<#Game_Boost_Benefit3_1#>)</li>
 					<li style="line-height:15px; margin-left:-25px; color:#949393;"><#Game_Boost_Benefit4#></li>
 					<li style="line-height:15px; margin-left:-25px; color:#949393;"><#Game_Boost_Benefit5#></li>
 				</ul>

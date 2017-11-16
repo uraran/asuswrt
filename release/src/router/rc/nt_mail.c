@@ -11,7 +11,7 @@
 #endif
 
 #ifdef RTCONFIG_BWDPI
-#include <bwdpi.h>
+#include <bwdpi_common.h>
 #endif
 
 #define TM_WRS_MAIL             0x01

@@ -1,4 +1,5 @@
-﻿define(function(){
+﻿// menuTree_ROG.js
+define(function(){
 	var menuTree = {
 		list: [
 			/*

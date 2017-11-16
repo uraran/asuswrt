@@ -118,6 +118,10 @@ extern int mkdir_if_none(const char *path)
 #include <bluetooth/hci.h>
 #endif /* RTCONFIG_BT_CONN */
 
+#if defined(RTCONFIG_LP5523)
+#include <lp5523led.h>
+#endif
+
 extern char *crypt __P((const char *, const char *)); //should be defined in unistd.h with _XOPEN_SOURCE defined
 #define sin_addr(s) (((struct sockaddr_in *)(s))->sin_addr)
 
@@ -3196,6 +3200,10 @@ stop_misc(void)
 	if (pids("watchdog02"))
 		killall_tk("watchdog02");
 #endif
+#ifdef RTCONFIG_LANTIQ
+	if (pids("wave_monitor"))
+		killall_tk("wave_monitor");
+#endif
 #ifdef SW_DEVLED
 	if (pids("sw_devled"))
 		killall_tk("sw_devled");
@@ -4554,22 +4562,48 @@ void stop_dbus_daemon(void)
 	}
 }
 
+int check_bluetooth_device(const char *bt_dev)
+{
+	struct hci_dev_info di;
+	int fd;
+	int ret = -1;
+
+	if(bt_dev == NULL || strlen(bt_dev) < 4)
+		return -1;
+
+	if((fd = socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI)) >= 0)
+	{
+		memset(&di, 0, sizeof(di));
+		di.dev_id = safe_atoi(bt_dev + 3);	// hci interface: hci0
+
+		if (ioctl(fd, HCIGETDEVINFO, (void *) &di) == 0)
+		{
+			ret = 0;
+		}
+		close(fd);
+	}
+
+	if(ret == 0){
+		char cmd[64];
+		snprintf(cmd, sizeof(cmd), "hciconfig %s | grep 'UP RUNNING' -q", bt_dev);
+		if(system(cmd) != 0)
+		{
+			ret = -1;
+		}
+	}
+	return ret;
+}
+
 void start_bluetooth_service(void)
 {
 	pid_t pid;
 	char *ble_argv[]= { "bluetoothd", "-n", NULL };
-	struct hci_dev_info di;
 	const char *str_inf = "hci0";
-	int fd = -1, retry=0;
+	int retry=0;
 
-	while (fd < 0) {
-		fd = socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
-		memset(&di, 0, sizeof(di));
-		di.dev_id = safe_atoi(str_inf+3);	// hci interface: hci0 
-
-		if (ioctl(fd, HCIGETDEVINFO, (void *) &di))
+	while (1) {
+		if(check_bluetooth_device(str_inf))
 		{
-			fd = -1;
 			printf("Failed to get HCI Device! Retry after 1 sec!\n");
 			sleep(1);
 			if (++retry > 30) {
@@ -4577,6 +4611,8 @@ void start_bluetooth_service(void)
 				return;
 			}
 		}
+		else
+			break;
 	}
 
 	if (getpid()!=1) {
@@ -4603,14 +4639,14 @@ void stop_bluetooth_service(void)
 	if (pids("bluetoothd")) {
 		_dprintf("Turn off Bluetooth\n");
 		killall_tk("bluetoothd");
-		system("hciconfig hci0 down");
+		system("hciconfig hci0 reset down");
 		logmessage("bluetoothd", "daemon is stoped");
 	}
 
 }
 #endif	/* RTCONFIG_BT_CONN */
 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 void start_hyfi_process(void)
 {
 	hyfi_process();
@@ -6266,6 +6302,14 @@ setup_nc_event_conf()
 		memset(setConf, 0, sizeof(setConf));
 		for (i=0; mapInfo[i].value != 0; i++) {
 			memset(tmp, 0, sizeof(tmp));
+			if (mapInfo[i].value == PROTECTION_VULNERABILITY_EVENT ||
+			    mapInfo[i].value == PROTECTION_CC_EVENT ||
+			    mapInfo[i].value == PROTECTION_MALICIOUS_SITE_EVENT) {
+				snprintf(tmp, sizeof(tmp), "<%x>%d>%d",
+					 mapInfo[i].value,
+					 NC_ACTION_SET(mapInfo[i].action, NC_ACT_EMAIL_BIT),
+					 mapInfo[i].eType);
+			} else
 			snprintf(tmp, sizeof(tmp), "<%x>%d>%d",
 				 mapInfo[i].value,
 				 NC_ACTION_CLR(mapInfo[i].action, NC_ACT_EMAIL_BIT),
@@ -6466,6 +6510,9 @@ start_services(void)
 #ifdef RTAC87U
 	start_watchdog02();
 #endif
+#ifdef RTCONFIG_LANTIQ
+	start_wave_monitor();
+#endif
 #ifdef SW_DEVLED
 	start_sw_devled();
 #endif
@@ -6607,8 +6654,7 @@ start_services(void)
 	hnd_mfg_services();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-	if (is_router_mode())
-		start_cfgsync();
+	start_cfgsync();
 #endif
 
 #if !(defined(RTCONFIG_QCA) || defined(RTCONFIG_RALINK) || defined(RTCONFIG_REALTEK))
@@ -6802,8 +6848,7 @@ stop_services(void)
 	stop_sysstate();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-	if (is_router_mode())
-		stop_cfgsync();
+	stop_cfgsync();
 #endif
 }
 
@@ -7143,6 +7188,18 @@ start_watchdog02(void)
 }
 #endif
 
+#ifdef RTCONFIG_LANTIQ
+int
+start_wave_monitor(void)
+{
+	char *wave_monitor_argv[] = {"wave_monitor", NULL};
+	pid_t wavepid;
+
+	if (pidof("wave_monitor") > 0) return -1;
+
+	return _eval(wave_monitor_argv, NULL, 0, &wavepid);
+}
+#endif
 #ifdef SW_DEVLED
 int
 start_sw_devled(void)
@@ -7645,6 +7702,9 @@ again:
 #endif
 		sleep(3);
 		nvram_set(ASUS_STOP_COMMIT, "1");
+#if defined(RTCONFIG_NVRAM_FILE)
+		ResetDefault();
+#else
 		if (nvram_contains_word("rc_support", "nandflash"))	/* RT-AC56S,U/RT-AC68U/RT-N18U */
 #ifdef HND_ROUTER
 			eval("hnd-erase", "nvram");
@@ -7656,10 +7716,9 @@ again:
 			eval("mtd-erase2", "nvram");
 #elif defined(RTCONFIG_REALTEK)
 			ResetDefault();
-#elif defined(RTCONFIG_NVRAM_FILE)
-			ResetDefault();
 #else
 			eval("mtd-erase", "-d", "nvram");
+#endif
 #endif
 
 #ifdef RTCONFIG_QCA_PLC_UTILS
@@ -7670,7 +7729,7 @@ again:
 		kill(1, SIGTERM);
 	}
 	else if (strcmp(script, "all") == 0) {
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 		action |= RC_SERVICE_STOP | RC_SERVICE_START;
 		goto script_allnet;
 #else
@@ -7841,12 +7900,8 @@ again:
 #endif	//RTCONFIG_QCA
 #endif
 #endif
-#ifndef HND_ROUTER
 				if (!(r = build_temp_rootfs(TMP_ROOTFS_MNT_POINT)))
 					sw = 1;
-#else
-				sw = 0;
-#endif
 #ifdef RTCONFIG_DUAL_TRX
 				if (!nvram_match("nflash_swecc", "1"))
 				{
@@ -7860,6 +7915,10 @@ again:
 				if (nvram_contains_word("rc_support", "nandflash"))	/* RT-AC56S,U/RT-AC68U/RT-N16UHP */
 #ifdef HND_ROUTER
 					eval("hnd-write", upgrade_file);
+#elif defined(RTCONFIG_ALPINE)
+					update_trx("/tmp/linux.trx");
+#elif defined(RTCONFIG_LANTIQ)
+					update_trx("/tmp/linux.trx");
 #else
 					eval("mtd-write2", upgrade_file, "linux");
 #endif
@@ -7925,7 +7984,7 @@ again:
 		stop_services_mfg();
 	}
 	else if (strcmp(script, "allnet") == 0) {
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 script_allnet:
 #endif
 		if(action&RC_SERVICE_STOP) {
@@ -7997,8 +8056,7 @@ script_allnet:
 			stop_u2ec();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				stop_cfgsync();
+			stop_cfgsync();
 #endif
 
 			// TODO free memory here
@@ -8098,8 +8156,7 @@ script_allnet:
 #endif
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				start_cfgsync();
+			start_cfgsync();
 #endif
 		}
 	}
@@ -8161,8 +8218,7 @@ script_allnet:
 			stop_8021x();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				stop_cfgsync();
+			stop_cfgsync();
 #endif
 			stop_wan();
 			stop_lan();
@@ -8252,8 +8308,7 @@ script_allnet:
 #endif
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				start_cfgsync();
+			start_cfgsync();
 #endif
 		}
 	}
@@ -8348,8 +8403,7 @@ script_allnet:
 			//stop_pptpd();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				stop_cfgsync();
+			stop_cfgsync();
 #endif
 			stop_wan();
 			stop_lan();
@@ -8473,8 +8527,7 @@ script_allnet:
 			start_plchost();
 #endif
 #ifdef RTCONFIG_CFGSYNC
-			if (is_router_mode())
-				start_cfgsync();
+			start_cfgsync();
 #endif
 		}
 	}
@@ -8758,6 +8811,10 @@ check_ddr_done:
 			}
 			if(action & RC_SERVICE_START)
 			{
+#if defined(RTCONFIG_DETWAN)
+				extern void detwan_set_net_block(int add);
+				detwan_set_net_block(0);
+#endif	/* RTCONFIG_DETWAN */
 #ifdef RTCONFIG_IPV6
 				start_lan_ipv6();
 #endif
@@ -9518,7 +9575,7 @@ check_ddr_done:
 		else if(action&RC_SERVICE_START) start_bluetooth_service();
 	}
 #endif	/* RTCONFIG_BT_CONN */ 
-#if defined(HIVEDOT) || defined(HIVESPOT)
+#if defined(MAPAC1300) || defined(MAPAC2200)
 	else if (strcmp(script, "hyfi_process") == 0)
 	{
 		if(action&RC_SERVICE_START) start_hyfi_process();
@@ -9874,7 +9931,10 @@ check_ddr_done:
 		if(action & RC_SERVICE_START) start_plcdet();
 	}
 #endif
-#if defined(CONFIG_BCMWL5)|| (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) || defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
+#if defined(CONFIG_BCMWL5) \
+		|| (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) \
+		|| defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK) \
+		|| defined(RTCONFIG_QSR10G)
 	else if (strcmp(script, "wlcscan")==0)
 	{
 		if(action & RC_SERVICE_STOP) stop_wlcscan();
@@ -10614,7 +10674,10 @@ _dprintf("goto again(%d)...\n", getpid());
 _dprintf("handle_notifications() end\n");
 }
 
-#if defined(CONFIG_BCMWL5) || (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) || defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK)
+#if defined(CONFIG_BCMWL5) \
+		|| (defined(RTCONFIG_RALINK) && defined(RTCONFIG_WIRELESSREPEATER)) \
+		|| defined(RTCONFIG_QCA) || defined(RTCONFIG_REALTEK) \
+		|| defined(RTCONFIG_QSR10G)
 void
 start_wlcscan(void)
 {
@@ -12674,12 +12737,14 @@ int start_cfgsync(void)
 	pid_t pid;
 	int ret = 0;
 
-	stop_cfgsync();
-
-	if (is_router_mode())
+	if (is_router_mode()) {
+		stop_cfgsync();
 		ret = _eval(cfg_server_argv, NULL, 0, &pid);
-	else
+	}
+	else if ((access_point_mode() && nvram_get_int("lan_state_t") == LAN_STATE_CONNECTED) ||
+		(repeater_mode() && nvram_get_int("wlc_state") == WLC_STATE_CONNECTED))
 	{
+		stop_cfgsync();
 		cfg_client_argv[2] = nvram_safe_get("lan_gateway");
 		ret = _eval(cfg_client_argv, NULL, 0, &pid);
 	}

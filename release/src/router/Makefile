@@ -530,7 +530,7 @@ obj-$(RTCONFIG_SOC_IPQ40XX) += qca-ssdk-shell.ipq40xx
 
 obj-$(RTCONFIG_SOC_IPQ40XX) += ethtool-3.7
 obj-$(RTCONFIG_SOC_IPQ40XX) += stress-1.x
-ifeq ($(MAKE_HIVEDOT)$(MAKE_HIVESPOT),y)
+ifeq ($(MAPAC1300)$(MAPAC2200),y)
 obj-y  += qca-hyfi-qdisc.ipq40xx
 obj-y  += qca-hyfi-bridge.ipq40xx
 ifeq ($(HIVE_LIB),y)
@@ -673,8 +673,10 @@ obj-y += libpasswd
 obj-y += httpd json-c
 obj-$(RTCONFIG_VISUALIZATION) += sqlite3 json-c libxml2 visdcoll visdcon
 obj-y += www
-ifeq ($(MAKE_HIVEDOT)$(MAKE_HIVESPOT),y)
+ifeq ($(HIVE_BIN),y)
 obj-y += hive_bin
+endif
+ifeq ($(HIVE_LIB),y)
 obj-y += hive_lib
 endif
 ifneq ($(HND_ROUTER),y)
@@ -1232,6 +1234,10 @@ obj-$(HND_ROUTER) += pppd_245
 #obj-$(HND_ROUTER) += jquery
 #obj-$(HND_ROUTER) += tablesorter
 
+# ALPINE compile package
+obj-$(RTCONFIG_ALPINE) += qsr10g_image
+obj-$(RTCONFIG_ALPINE) += aqr107_image
+
 ifeq ($(RTCONFIG_BCMARM),y)
 obj-prelibs =$(filter busybox% nvram$(BCMEX)$(EX7) libbcmcrypto shared netconf libupnp$(BCMEX)$(EX7) libz libbcm pciefd, $(obj-y))
 obj-postlibs := $(filter-out $(obj-prelibs), $(obj-y))
@@ -1688,7 +1694,7 @@ endif
 
 ifeq ($(RTCONFIG_QCA),y)
 	#FIXME
-ifeq ($(MAKE_HIVEDOT)$(MAKE_HIVESPOT),y)
+ifeq ($(MAPAC1300)$(MAPAC2200),y)
 	ln -sf $(TARGETDIR)/lib/ld-uClibc.so.0  $(TARGETDIR)/usr/lib/ld-uClibc.so.1 && \
 	ln -sf $(TARGETDIR)/lib/libc.so.0  $(TARGETDIR)/usr/lib/libc.so.1 && \
 	ln -sf $(TARGETDIR)/lib/libdl.so.0  $(TARGETDIR)/usr/lib/libdl.so.1 && \
@@ -1859,6 +1865,8 @@ ifeq ($(RTCONFIG_ROMATECCODEFIX),y)
 endif
 ifeq ($(RTCONFIG_LANTIQ),y)
 	cp -R rom_lantiq/opt/ $(TARGETDIR)/rom/opt/
+	cp rom_lantiq/etc/wave_components.ver $(TARGETDIR)/rom/opt/lantiq/etc/
+	rm -rf $(TARGETDIR)/rom/opt/lantiq/www
 	install -D rom_lantiq/bin/dutserver $(TARGETDIR)/bin/
 	install -D rom_lantiq/bin/wave_wlan_dut_drvctrl.sh $(TARGETDIR)/bin/
 	install -D rom_lantiq/bin/wave_wlan_dut_file_saver.sh $(TARGETDIR)/bin/
@@ -1870,6 +1878,8 @@ ifeq ($(RTCONFIG_LANTIQ),y)
 	install -D rom_lantiq/usr/sbin/read_img $(TARGETDIR)/usr/sbin/
 	install -D rom_lantiq/usr/sbin/nandwrite $(TARGETDIR)/usr/sbin/
 	install -D rom_lantiq/usr/sbin/nanddump $(TARGETDIR)/usr/sbin/
+	install -D rom_lantiq/usr/sbin/uboot_env $(TARGETDIR)/usr/sbin/
+	install -D rom_lantiq/usr/sbin/mem $(TARGETDIR)/usr/sbin/
 	cd $(TARGETDIR)/usr/sbin && ln -sf ../../rom/opt/lantiq/bin/mtdump ./mtdump
 	install -D rom_lantiq/usr/sbin/fapi_wlan_dbXml $(TARGETDIR)/usr/sbin/
 	install -D rom_lantiq/usr/sbin/fapi_wlan_cli $(TARGETDIR)/usr/sbin/
@@ -1900,6 +1910,7 @@ ifeq ($(RTCONFIG_ALPINE),y)
 	install -D ${SRCBASE}/tools/${TOOLCHAIN_NAME}/lib/libstdc++.so.6.0.19 $(TARGETDIR)/lib/libstdc++.so.6
 	$(STRIP) $(TARGETDIR)/lib/libstdc++.so.6
 	cd ${PLATFORMDIR}/target; cp ${SRCBASE}/proprietary/sbin/fw_print sbin/
+	cd ${PLATFORMDIR}/target; cp ${SRCBASE}/proprietary/etc/fw_env.config sbin/
 endif
 ifeq ($(RTCONFIG_QTN),y)
 	# install qtn boot-code and firmware
@@ -4236,6 +4247,9 @@ sysstate-install:
 	echo "install sysstate"
 	$(MAKE) -C sysstate install
 
+qsr10g_image:
+aqr107_image:
+
 CHIP=0
 CLM_BLOBS=router
 CLM_BLOB_IMAGES := $(CLM_BLOBS:=.clm_bin)
@@ -4710,29 +4724,24 @@ eapd$(BCMEX)$(EX7)-clean:
 
 lighttpd-1.4.39/Makefile:
 	@$(SEP)
-ifneq ($(RTCONFIG_BCMARM),y)
 	cd lighttpd-1.4.39 && ./autogen.sh
-endif
 
 lighttpd-1.4.39/stamp-h1: lighttpd-1.4.39/Makefile
-
-ifneq ($(RTCONFIG_QTN),y)
- ifeq ($(HND_ROUTER),y)
-	cd lighttpd-1.4.39 && ./preconfigure-script-hnd touch $@
- else
-	cd lighttpd-1.4.39 && ./preconfigure-script touch $@
- endif
+ifeq ($(HND_ROUTER),y)
+	cd lighttpd-1.4.39 && ./preconfigure-script-hnd
 else
-	cd lighttpd-1.4.39 && ./preconfigure-script-qtn touch $@
+	cd lighttpd-1.4.39 && ./preconfigure-script
 endif
+	@touch $@
 
-lighttpd-1.4.39: shared nvram$(BCMEX)$(EX7) libdisk samba-3.5.8 pcre-8.31 libxml2 sqlite libexif openssl lighttpd-1.4.39/stamp-h1
+lighttpd-1.4.39: shared nvram$(BCMEX)$(EX7) libdisk samba-3.5.8 pcre-8.31 libxml2 sqlite libexif openssl curl-7.21.7 $(if $(RTCONFIG_PERMISSION_MANAGEMENT),PMS_DBapis) lighttpd-1.4.39/stamp-h1
 
 lighttpd-1.4.39-install:
 	if [ -f lighttpd-1.4.39/Makefile ] ; then \
 		install -D lighttpd-1.4.39/src/.libs/lighttpd $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd ; \
 		install -D lighttpd-1.4.39/src/.libs/lighttpd-monitor $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd-monitor ; \
 		install -D lighttpd-1.4.39/src/.libs/lighttpd-arpping $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd-arpping ; \
+		ln -sf lighttpd $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/uamsrv ; \
 		$(STRIP) -s $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd ; \
 		$(STRIP) -s $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd-monitor ; \
 		$(STRIP) -s $(INSTALLDIR)/lighttpd-1.4.39/usr/sbin/lighttpd-arpping ; \
@@ -5855,6 +5864,10 @@ openswan-nss-clean:
 
 openswan-nss-stage:
 	$(MAKE) -C openswan-nss stage
+
+ifeq ($(HIVE_BIN),y)
+hive_bin-install: qca-wsplcd.ipq40xx-install qca-hyctl.ipq40xx-install
+endif
 
 qca-whc30-lbd: libqcacommon
 	$(MAKE) -C $@ && $(MAKE) $@-stage
